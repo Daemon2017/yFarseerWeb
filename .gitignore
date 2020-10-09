@@ -1,0 +1,5 @@
+mappings/
+__files/
+.idea/
+*.jar
+*.bat
