@@ -1,0 +1,42 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+body * {
+    font-weight: 200;
+}
+
+.leaflet-container {
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+#mapLayer {
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+}
+
+#searchLayer {
+    position: fixed;
+    display: block;
+    margin-left: 50px;
+    margin-top: 10px;
+    z-index: 1;
+}
+
+.box {
+    margin-top: 5px;
+    float: left;
+    width: 10px;
+    height: 10px;
+    border: 1px solid rgba(0, 0, 0, .1);
+}
+

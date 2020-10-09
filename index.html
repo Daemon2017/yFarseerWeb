@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>yFarseer Web Light</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <link
+            rel="stylesheet"
+            type="text/css"
+            href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"
+        />
+        <style> .leaflet-zoom-hide { position: absolute!important; } </style>
+        <script src="main.js"></script>
+        <script src="leaflet.js"></script>
+        <script src="heatmap.js"></script>
+        <script src="leaflet-heatmap.js"></script>
+    </head>
+    <body onload="createMap()">
+        <div id="searchLayer">
+            <label for="latForm" id="latLabel">
+                Lat:
+                <input type="search" id="latForm" placeholder="25.6586" />
+            </label>
+            <label for="lngForm" id="lngLabel">
+                Lng:
+                <input type="search" id="lngForm" placeholder="-80.3568" />
+            </label>
+            <button type="submit" id="setLatLngButton" onclick="setLatLng()">Set</button>
+            <br>
+            <label for="searchForm" id="searchLabel">
+                SNP:
+                <input type="search" id="searchForm" placeholder="R-CTS1211" />
+            </label>
+            <button type="submit" id="searchButton" onclick="drawData()">Draw</button>
+            <label id="stateLabel" >
+                Status: OK.
+            </label>
+            <br>
+            <div class="box" id="cb0"></div>
+            <div class="box" id="cb1"></div>
+            <div class="box" id="cb2"></div>
+            <div class="box" id="cb3"></div>
+            <div class="box" id="cb4"></div>
+            <div class="box" id="cb5"></div>
+            <div class="box" id="cb6"></div>
+            <div class="box" id="cb7"></div>
+            <div class="box" id="cb8"></div>
+            <div class="box" id="cb9"></div>
+            <br>
+            <label for="maxCountSlider" id="maxCountLabel">
+                Non-Intensity:
+                <input type="range" id="maxCountSlider" oninput="changeMaxCount(this.value)" min="1" max="10" value="10" class="slider">
+            </label>
+        </div>
+        <div id="mapLayer"></div>
+    </body>
+</html>
