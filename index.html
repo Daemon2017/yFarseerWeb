@@ -28,10 +28,10 @@
             <button type="submit" id="setLatLngButton" onclick="setLatLng()">Set</button>
             <br>
             <label for="searchForm" id="searchLabel">
-                SNP:
+                SNPs:
                 <input type="search" id="searchForm" placeholder="R-CTS1211" />
             </label>
-            <button type="submit" id="searchButton" onclick="drawData()">Draw</button>
+            <button type="submit" id="searchButton" onclick="prepareData()">Draw</button>
             <label id="stateLabel" >
                 Status: OK.
             </label>
@@ -46,10 +46,9 @@
             <div class="box" id="cb7"></div>
             <div class="box" id="cb8"></div>
             <div class="box" id="cb9"></div>
-            <br>
             <label for="maxCountSlider" id="maxCountLabel">
-                Non-Intensity:
-                <input type="range" id="maxCountSlider" oninput="changeMaxCount(this.value)" min="1" max="10" value="10" class="slider">
+                Intensity:
+                <input type="range" id="maxCountSlider" oninput="changeMaxCount(this.value)" min="0" max="10" value="0" class="slider">
             </label>
         </div>
         <div id="mapLayer"></div>

@@ -32,6 +32,12 @@ function createMap() {
     });
 
     map.addEventListener('move', getLatLng());
+
+    var queryString = window.location.search;
+    var urlParams = new URLSearchParams(queryString);
+    var snpString = urlParams.get('snps');
+    var snpList = getSnpList(snpString);
+    drawData(snpList);
 }
 
 function getLatLng() {
@@ -68,25 +74,12 @@ function getJSON(url, callback) {
 var maxCount = 10;
 
 function changeMaxCount(value) {
-    maxCount = value;
-    drawData();
+    maxCount = 10 - value;
+    prepareData();
 }
 
-var heatmapLayersList = [];
-
-function drawData() {
-    for (var i = 0; i < 10; i++) {
-        document.getElementById("cb" + i).style = "background-color: transparent";
-    }
-
-    if (heatmapLayersList.length !== 0) {
-        heatmapLayersList.forEach(function (layer) {
-            map.removeLayer(layer);
-        })
-        heatmapLayersList = [];
-    }
-
-    var snpString = document.getElementById("searchForm").value.toUpperCase().replace(/ /g, '');
+function getSnpList(snpString) {
+    snpString = snpString.toUpperCase().replace(/ /g, '');
     if (snpString === "") {
         document.getElementById("stateLabel").innerText = "Status: Neither SNP was specified.";
         return undefined;
@@ -98,6 +91,29 @@ function drawData() {
     });
     document.getElementById("searchForm").value = snpList.join(',')
 
+    return snpList;
+}
+
+var heatmapLayersList = [];
+
+function prepareData() {
+    for (var i = 0; i < 10; i++) {
+        document.getElementById("cb" + i).style = "background-color: transparent";
+    }
+
+    if (heatmapLayersList.length !== 0) {
+        heatmapLayersList.forEach(function (layer) {
+            map.removeLayer(layer);
+        })
+        heatmapLayersList = [];
+    }
+
+    var snpString = document.getElementById("searchForm").value;
+    var snpList = getSnpList(snpString);
+    drawData(snpList);
+}
+
+function drawData(snpList) {
     if (!(snpList.length > 0 && snpList.length < 10)) {
         document.getElementById("stateLabel").innerText = "Status: The number of SNPs should be in the range [1;10].";
         return undefined;
