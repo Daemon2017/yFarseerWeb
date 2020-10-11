@@ -30,6 +30,11 @@ body * {
     margin-left: 50px;
     margin-top: 10px;
     z-index: 1;
+    pointer-events: none;
+}
+
+#latForm, #lngForm, #setLatLngButton, #searchForm, #searchButton, #maxCountSlider {
+    pointer-events: auto;
 }
 
 .box {
