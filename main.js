@@ -108,6 +108,8 @@ function prepareData() {
         document.getElementById("cb" + i).style = "background-color: transparent";
     }
 
+    document.getElementById("correlationMatrix").innerHTML = null;
+
     if (heatmapLayersList.length !== 0) {
         heatmapLayersList.forEach(function (layer) {
             map.removeLayer(layer);
@@ -166,5 +168,65 @@ function drawData(snpList) {
                     }
                 });
         })
+    }
+}
+
+function pearson(x, y) {
+    let promedio = (lista) => {
+        return lista.reduce((s, a) => s + a, 0) / lista.length
+    };
+    let n = x.length, prom_x = promedio(x), prom_y = promedio(y);
+    return (x.map((e, i, r) => (r = {x: e, y: y[i]})).reduce((s, a) => s + a.x * a.y, 0) - n * prom_x * prom_y) /
+        ((Math.sqrt(x.reduce((s, a) => (s + a * a), 0) - n * prom_x * prom_x)) *
+            (Math.sqrt(y.reduce((s, a) => (s + a * a), 0) - n * prom_y * prom_y)));
+}
+
+function makeTableHTML(myArray) {
+    var result = "<table border=1>";
+    for (var i = 0; i < myArray.length; i++) {
+        result += "<tr>";
+        for (var j = 0; j < myArray[i].length; j++) {
+            result += "<td>" + myArray[i][j] + "</td>";
+        }
+        result += "</tr>";
+    }
+    result += "</table>";
+
+    return result;
+}
+
+function getCorrelation() {
+    if (dataList.length > 0) {
+        var allPossibleKeysList = [];
+        for (var i = 0; i < dataList.length; i++) {
+            for (var j = 0; j < dataList[i].length; j++) {
+                allPossibleKeysList.push(dataList[i][j]['lat'] + ';' + dataList[i][j]['lng']);
+            }
+        }
+        allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
+        allPossibleKeysList = allPossibleKeysList.sort();
+
+        var countListList = [];
+        for (var m = 0; m < dataList.length; m++) {
+            var countList = new Array(allPossibleKeysList.length);
+            countList.fill(0);
+            for (var n = 0; n < dataList[m].length; n++) {
+                countList[allPossibleKeysList.indexOf(dataList[m][n]['lat'] + ';' + dataList[m][n]['lng'])] = dataList[m][n]['count'];
+            }
+            countListList.push(countList);
+        }
+
+        var correlationMatrix = [];
+        for (var a = 0; a < dataList.length; a++) {
+            var correlationRow = [];
+            for (var b = 0; b < dataList.length; b++) {
+                correlationRow.push(pearson(countListList[a], countListList[b]).toFixed(2));
+            }
+            correlationMatrix.push(correlationRow);
+        }
+
+        document.getElementById("correlationMatrix").innerHTML = makeTableHTML(correlationMatrix);
+    } else {
+        document.getElementById("stateLabel").innerText = "Status: Neither SNP data was received.";
     }
 }

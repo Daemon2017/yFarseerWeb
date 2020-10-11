@@ -32,6 +32,7 @@
                 <input type="search" id="searchForm" placeholder="R-CTS1211" />
             </label>
             <button type="submit" id="searchButton" onclick="prepareData()">Draw</button>
+            <button type="submit" id="correlButton" onclick="getCorrelation()">Correl</button>
             <label id="stateLabel" >
                 Status: OK.
             </label>
@@ -50,6 +51,8 @@
                 Intensity:
                 <input type="range" id="maxCountSlider" oninput="changeIntensity(this.value)" min="0" max="10" value="0" class="slider">
             </label>
+            <br>
+            <div id="correlationMatrix"></div>
         </div>
         <div id="mapLayer"></div>
     </body>
