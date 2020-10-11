@@ -55,9 +55,14 @@ function getLatLng() {
 }
 
 function setLatLng() {
-    var lat = document.getElementById("latForm").value;
-    var lng = document.getElementById("lngForm").value;
-    map.panTo(new L.LatLng(lat, lng));
+    try {
+        var lat = Number(document.getElementById("latForm").value);
+        var lng = Number(document.getElementById("lngForm").value);
+        map.panTo(new L.LatLng(lat, lng));
+        document.getElementById("stateLabel").innerText = "OK.";
+    } catch (e) {
+        document.getElementById("stateLabel").innerText = "Error: Both Lat and Lng must be a number!";
+    }
 }
 
 function getJSON(url, callback) {
@@ -79,15 +84,14 @@ var intensity = 10;
 
 function changeIntensity(value) {
     intensity = 10 - value;
-    document.getElementById("stateLabel").innerText = "Status: Intensity=" + value;
 }
 
 function getSnpList(snpString) {
     if (snpString != null) {
         snpString = snpString.toUpperCase().replace(/ /g, '');
         if (snpString === "") {
-            document.getElementById("stateLabel").innerText = "Status: Neither SNP was specified.";
-            return undefined;
+            document.getElementById("stateLabel").innerText = "Error: No SNP was specified!";
+            throw "Error!";
         }
 
         var snpList = snpString.split(',');
@@ -95,6 +99,11 @@ function getSnpList(snpString) {
             return snp !== '';
         });
         document.getElementById("searchForm").value = snpList.join(',')
+
+        if (!(snpList.length > 0 && snpList.length < 10)) {
+            document.getElementById("stateLabel").innerText = "Error: The number of SNPs should be in the range [1;10]!";
+            throw "Error!";
+        }
 
         return snpList;
     }
@@ -126,16 +135,11 @@ function clearMap() {
 
     snpPointsList = [];
 
-    document.getElementById("stateLabel").innerText = "Status: OK.";
+    document.getElementById("stateLabel").innerText = "OK.";
 }
 
 function drawMap(snpList) {
     if (snpList !== undefined) {
-        if (!(snpList.length > 0 && snpList.length < 10)) {
-            document.getElementById("stateLabel").innerText = "Status: The number of SNPs should be in the range [1;10].";
-            return undefined;
-        }
-
         snpList.forEach(function (snp, i) {
             getJSON("http://127.0.0.1:8080/snpData/" + snp,
                 function (err, data) {
@@ -173,7 +177,7 @@ function drawMap(snpList) {
                     }
                 });
         })
-        document.getElementById("stateLabel").innerText = "Status: OK.";
+        document.getElementById("stateLabel").innerText = "OK.";
     }
 }
 
@@ -221,8 +225,8 @@ function getCorrelation() {
         }
 
         document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
-        document.getElementById("stateLabel").innerText = "Status: OK.";
+        document.getElementById("stateLabel").innerText = "OK.";
     } else {
-        document.getElementById("stateLabel").innerText = "Status: Neither SNP data was received.";
+        document.getElementById("stateLabel").innerText = "Error: No SNP data was received!";
     }
 }
