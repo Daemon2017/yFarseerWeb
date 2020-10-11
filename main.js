@@ -25,16 +25,21 @@ function createMap() {
         }
     );
 
+    var queryString = window.location.search;
+    var urlParams = new URLSearchParams(queryString);
+    var lat = urlParams.get('lat') == null ? 25.6586 : urlParams.get('lat');
+    var lng = urlParams.get('lng') == null ? -80.3568 : urlParams.get('lng');
+    document.getElementById("latForm").value = lat;
+    document.getElementById("lngForm").value = lng;
+
     map = new L.Map("mapLayer", {
-        center: new L.LatLng(25.6586, -80.3568),
+        center: new L.LatLng(lat, lng),
         zoom: 4,
         layers: [baseLayer]
     });
 
     map.addEventListener('move', getLatLng());
 
-    var queryString = window.location.search;
-    var urlParams = new URLSearchParams(queryString);
     var snpString = urlParams.get('snps');
     var snpList = getSnpList(snpString);
     drawData(snpList);
