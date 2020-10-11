@@ -34,6 +34,7 @@ body * {
 
 .box {
     margin-top: 5px;
+    margin-left: 1px;
     float: left;
     width: 10px;
     height: 10px;

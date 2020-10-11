@@ -79,22 +79,25 @@ function changeMaxCount(value) {
 }
 
 function getSnpList(snpString) {
-    snpString = snpString.toUpperCase().replace(/ /g, '');
-    if (snpString === "") {
-        document.getElementById("stateLabel").innerText = "Status: Neither SNP was specified.";
-        return undefined;
+    if (snpString != null) {
+        snpString = snpString.toUpperCase().replace(/ /g, '');
+        if (snpString === "") {
+            document.getElementById("stateLabel").innerText = "Status: Neither SNP was specified.";
+            return undefined;
+        }
+
+        var snpList = snpString.split(',');
+        snpList = snpList.filter(function (snp) {
+            return snp !== '';
+        });
+        document.getElementById("searchForm").value = snpList.join(',')
+
+        return snpList;
     }
-
-    var snpList = snpString.split(',');
-    snpList = snpList.filter(function (snp) {
-        return snp !== '';
-    });
-    document.getElementById("searchForm").value = snpList.join(',')
-
-    return snpList;
 }
 
 var heatmapLayersList = [];
+var dataList = [];
 
 function prepareData() {
     for (var i = 0; i < 10; i++) {
@@ -108,50 +111,56 @@ function prepareData() {
         heatmapLayersList = [];
     }
 
+    dataList = [];
+
     var snpString = document.getElementById("searchForm").value;
     var snpList = getSnpList(snpString);
     drawData(snpList);
 }
 
 function drawData(snpList) {
-    if (!(snpList.length > 0 && snpList.length < 10)) {
-        document.getElementById("stateLabel").innerText = "Status: The number of SNPs should be in the range [1;10].";
-        return undefined;
+    if (snpList !== undefined) {
+        if (!(snpList.length > 0 && snpList.length < 10)) {
+            document.getElementById("stateLabel").innerText = "Status: The number of SNPs should be in the range [1;10].";
+            return undefined;
+        }
+
+        snpList.forEach(function (snp, i) {
+            getJSON("http://127.0.0.1:8080/snpData/" + snp,
+                function (err, data) {
+                    if (err === null) {
+                        var heatmapLayerData = {
+                            max: maxCount,
+                            data: data
+                        };
+
+                        dataList.push(data);
+
+                        var gradient = {};
+                        gradientKeys.forEach(function (key, j) {
+                            gradient[gradientKeys[j]] = gradientValues[i][j];
+                        })
+
+                        var heatmapCfg = {
+                            radius: 2,
+                            maxOpacity: .9,
+                            minOpacity: .1,
+                            scaleRadius: true,
+                            useLocalExtrema: false,
+                            latField: "lat",
+                            lngField: "lng",
+                            valueField: "count",
+                            gradient: gradient
+                        };
+
+                        var heatmapLayer = new HeatmapOverlay(heatmapCfg);
+                        heatmapLayer.setData(heatmapLayerData);
+                        map.addLayer(heatmapLayer);
+                        heatmapLayersList.push(heatmapLayer);
+
+                        document.getElementById("cb" + i).style = "background-color:" + gradientValues[i][9];
+                    }
+                });
+        })
     }
-
-    snpList.forEach(function (snp, i) {
-        getJSON("http://127.0.0.1:8080/snpData/" + snp,
-            function (err, data) {
-                if (err === null) {
-                    var heatmapLayerData = {
-                        max: maxCount,
-                        data: data
-                    };
-
-                    var gradient = {};
-                    gradientKeys.forEach(function (key, j) {
-                        gradient[gradientKeys[j]] = gradientValues[i][j];
-                    })
-
-                    var heatmapCfg = {
-                        radius: 2,
-                        maxOpacity: .9,
-                        minOpacity: .1,
-                        scaleRadius: true,
-                        useLocalExtrema: false,
-                        latField: "lat",
-                        lngField: "lng",
-                        valueField: "count",
-                        gradient: gradient
-                    };
-
-                    var heatmapLayer = new HeatmapOverlay(heatmapCfg);
-                    heatmapLayer.setData(heatmapLayerData);
-                    map.addLayer(heatmapLayer);
-                    heatmapLayersList.push(heatmapLayer);
-
-                    document.getElementById("cb" + i).style = "background-color:" + gradientValues[i][9];
-                }
-            });
-    })
 }
