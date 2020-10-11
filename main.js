@@ -41,7 +41,7 @@ function createMap() {
 
     var snpString = urlParams.get('snps');
     var snpList = getSnpList(snpString);
-    drawData(snpList);
+    drawMap(snpList);
 }
 
 function getLatLng() {
@@ -79,7 +79,7 @@ var intensity = 10;
 
 function changeIntensity(value) {
     intensity = 10 - value;
-    prepareData();
+    document.getElementById("stateLabel").innerText = "Status: Intensity=" + value;
 }
 
 function getSnpList(snpString) {
@@ -103,7 +103,14 @@ function getSnpList(snpString) {
 var heatmapLayersList = [];
 var snpPointsList = [];
 
-function prepareData() {
+function buildMap() {
+    clearMap();
+    var snpString = document.getElementById("searchForm").value;
+    var snpList = getSnpList(snpString);
+    drawMap(snpList);
+}
+
+function clearMap() {
     for (var i = 0; i < 10; i++) {
         document.getElementById("cb" + i).style = "background-color: transparent";
     }
@@ -119,12 +126,10 @@ function prepareData() {
 
     snpPointsList = [];
 
-    var snpString = document.getElementById("searchForm").value;
-    var snpList = getSnpList(snpString);
-    drawData(snpList);
+    document.getElementById("stateLabel").innerText = "Status: OK.";
 }
 
-function drawData(snpList) {
+function drawMap(snpList) {
     if (snpList !== undefined) {
         if (!(snpList.length > 0 && snpList.length < 10)) {
             document.getElementById("stateLabel").innerText = "Status: The number of SNPs should be in the range [1;10].";
@@ -168,10 +173,11 @@ function drawData(snpList) {
                     }
                 });
         })
+        document.getElementById("stateLabel").innerText = "Status: OK.";
     }
 }
 
-function makeTableHTML(myArray) {
+function getHtmlTable(myArray) {
     var result = "<table border=1><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row) {
         result += "<tr>";
@@ -214,7 +220,8 @@ function getCorrelation() {
             correlationMatrix.push(correlationRow);
         }
 
-        document.getElementById("correlationMatrix").innerHTML = makeTableHTML(correlationMatrix);
+        document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
+        document.getElementById("stateLabel").innerText = "Status: OK.";
     } else {
         document.getElementById("stateLabel").innerText = "Status: Neither SNP data was received.";
     }

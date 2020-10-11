@@ -33,7 +33,7 @@ body * {
     pointer-events: none;
 }
 
-#latForm, #lngForm, #setLatLngButton, #searchForm, #searchButton, #maxCountSlider, #correlButton {
+#latForm, #lngForm, #setLatLngButton, #searchForm, #searchButton, #maxCountSlider, #correlButton, #clearButton {
     pointer-events: auto;
 }
 
