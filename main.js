@@ -101,7 +101,7 @@ function getSnpList(snpString) {
 }
 
 var heatmapLayersList = [];
-var dataList = [];
+var snpPointsList = [];
 
 function prepareData() {
     for (var i = 0; i < 10; i++) {
@@ -117,7 +117,7 @@ function prepareData() {
         heatmapLayersList = [];
     }
 
-    dataList = [];
+    snpPointsList = [];
 
     var snpString = document.getElementById("searchForm").value;
     var snpList = getSnpList(snpString);
@@ -140,7 +140,7 @@ function drawData(snpList) {
                             data: data
                         };
 
-                        dataList.push(data);
+                        snpPointsList.push(data);
 
                         var gradient = {};
                         gradientKeys.forEach(function (key, j) {
@@ -172,44 +172,43 @@ function drawData(snpList) {
 }
 
 function makeTableHTML(myArray) {
-    var result = "<table border=1>";
-    for (var i = 0; i < myArray.length; i++) {
+    var result = "<table border=1><caption>Correlation matrix:</caption>";
+    myArray.forEach(function (row) {
         result += "<tr>";
-        for (var j = 0; j < myArray[i].length; j++) {
-            result += "<td>" + myArray[i][j] + "</td>";
-        }
+        row.forEach(function (column) {
+            result += "<td>" + column + "</td>";
+        })
         result += "</tr>";
-    }
+    })
     result += "</table>";
 
     return result;
 }
 
 function getCorrelation() {
-    if (dataList.length > 0) {
+    if (snpPointsList.length > 0) {
         var allPossibleKeysList = [];
-        for (var i = 0; i < dataList.length; i++) {
-            for (var j = 0; j < dataList[i].length; j++) {
-                allPossibleKeysList.push(dataList[i][j]['lat'] + ';' + dataList[i][j]['lng']);
-            }
-        }
+        snpPointsList.forEach(function (snpPoints) {
+            snpPoints.forEach(function (point) {
+                allPossibleKeysList.push(point['lat'] + ';' + point['lng']);
+            })
+        })
         allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
         allPossibleKeysList = allPossibleKeysList.sort();
 
         var countListList = [];
-        for (var m = 0; m < dataList.length; m++) {
-            var countList = new Array(allPossibleKeysList.length);
-            countList.fill(0);
-            for (var n = 0; n < dataList[m].length; n++) {
-                countList[allPossibleKeysList.indexOf(dataList[m][n]['lat'] + ';' + dataList[m][n]['lng'])] = dataList[m][n]['count'];
-            }
+        snpPointsList.forEach(function (snpPoints) {
+            var countList = new Array(allPossibleKeysList.length).fill(0);
+            snpPoints.forEach(function (point) {
+                countList[allPossibleKeysList.indexOf(point['lat'] + ';' + point['lng'])] = point['count'];
+            })
             countListList.push(countList);
-        }
+        })
 
         var correlationMatrix = [];
-        for (var a = 0; a < dataList.length; a++) {
+        for (var a = 0; a < snpPointsList.length; a++) {
             var correlationRow = [];
-            for (var b = 0; b < dataList.length; b++) {
+            for (var b = 0; b < snpPointsList.length; b++) {
                 correlationRow.push(jStat.corrcoeff(countListList[a], countListList[b]).toFixed(2));
             }
             correlationMatrix.push(correlationRow);
