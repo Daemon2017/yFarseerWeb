@@ -7,13 +7,13 @@
         <link
             rel="stylesheet"
             type="text/css"
-            href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+            href="https://unpkg.com/leaflet@latest/dist/leaflet.css"
         />
         <style> .leaflet-zoom-hide { position: absolute!important; } </style>
         <script src="main.js"></script>
-        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-        <script src="heatmap.js"></script>
-        <script src="leaflet-heatmap.js"></script>
+        <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/build/heatmap.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/plugins/leaflet-heatmap/leaflet-heatmap.js"></script>
     </head>
     <body onload="createMap()">
         <div id="searchLayer">
@@ -48,7 +48,7 @@
             <div class="box" id="cb9"></div>
             <label for="maxCountSlider" id="maxCountLabel">
                 Intensity:
-                <input type="range" id="maxCountSlider" oninput="changeMaxCount(this.value)" min="0" max="10" value="0" class="slider">
+                <input type="range" id="maxCountSlider" oninput="changeIntensity(this.value)" min="0" max="10" value="0" class="slider">
             </label>
         </div>
         <div id="mapLayer"></div>

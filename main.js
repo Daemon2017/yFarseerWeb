@@ -12,11 +12,17 @@ var gradientValues = [
     ['#EAECEE', '#D5D8DC', '#ABB2B9', '#808B96', '#566573', '#2C3E50', '#273746', '#212F3D', '#1C2833', '#17202A']
 ]
 
-var baseLayer;
 var map;
 
 function createMap() {
-    baseLayer = L.tileLayer(
+    var queryString = window.location.search;
+    var urlParams = new URLSearchParams(queryString);
+    var lat = urlParams.get('lat') == null ? 25.6586 : urlParams.get('lat');
+    var lng = urlParams.get('lng') == null ? -80.3568 : urlParams.get('lng');
+    document.getElementById("latForm").value = lat;
+    document.getElementById("lngForm").value = lng;
+
+    var baseLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             attribution:
@@ -24,13 +30,6 @@ function createMap() {
             maxZoom: 10,
         }
     );
-
-    var queryString = window.location.search;
-    var urlParams = new URLSearchParams(queryString);
-    var lat = urlParams.get('lat') == null ? 25.6586 : urlParams.get('lat');
-    var lng = urlParams.get('lng') == null ? -80.3568 : urlParams.get('lng');
-    document.getElementById("latForm").value = lat;
-    document.getElementById("lngForm").value = lng;
 
     map = new L.Map("mapLayer", {
         center: new L.LatLng(lat, lng),
@@ -76,10 +75,10 @@ function getJSON(url, callback) {
     xhr.send();
 }
 
-var maxCount = 10;
+var intensity = 10;
 
-function changeMaxCount(value) {
-    maxCount = 10 - value;
+function changeIntensity(value) {
+    intensity = 10 - value;
     prepareData();
 }
 
@@ -135,7 +134,7 @@ function drawData(snpList) {
                 function (err, data) {
                     if (err === null) {
                         var heatmapLayerData = {
-                            max: maxCount,
+                            max: intensity,
                             data: data
                         };
 
