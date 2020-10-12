@@ -13,6 +13,7 @@ const gradientValues = [
 ]
 
 var map;
+var baseLayer;
 
 function createMap() {
     var queryString = window.location.search;
@@ -22,7 +23,7 @@ function createMap() {
     document.getElementById("latForm").value = lat;
     document.getElementById("lngForm").value = lng;
 
-    var baseLayer = L.tileLayer(
+    baseLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
             attribution:
@@ -44,7 +45,6 @@ function createMap() {
     drawMap(snpList, 10);
 }
 
-var heatmapLayersList = [];
 var snpPointsList = [];
 var threshold = 10;
 
@@ -63,12 +63,11 @@ function clearMap() {
 
     document.getElementById("correlationMatrix").innerHTML = null;
 
-    if (heatmapLayersList.length !== 0) {
-        heatmapLayersList.forEach(function (layer) {
+    map.eachLayer(function (layer) {
+        if (layer !== baseLayer) {
             map.removeLayer(layer);
-        })
-        heatmapLayersList = [];
-    }
+        }
+    })
 
     snpPointsList = [];
 
@@ -100,6 +99,8 @@ function getSnpList(snpString) {
 
 function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
+        var newSnpPointsList = Object.assign(snpPointsList);
+
         snpList.forEach(function (snp, i) {
             getJSON("http://127.0.0.1:8080/snpData/" + snp,
                 function (err, data) {
@@ -109,7 +110,7 @@ function drawMap(snpList, thresholdValue) {
                             data: data
                         };
 
-                        snpPointsList.push(data);
+                        newSnpPointsList.push(data);
 
                         var gradient = {};
                         gradientKeys.forEach(function (key, j) {
@@ -131,12 +132,13 @@ function drawMap(snpList, thresholdValue) {
                         var heatmapLayer = new HeatmapOverlay(heatmapCfg);
                         heatmapLayer.setData(heatmapLayerData);
                         map.addLayer(heatmapLayer);
-                        heatmapLayersList.push(heatmapLayer);
 
                         document.getElementById("cb" + i).style = "background-color:" + gradientValues[i][9];
                     }
                 });
         })
+
+        snpPointsList = newSnpPointsList;
         document.getElementById("stateLabel").innerText = "OK.";
     }
 }
@@ -179,8 +181,10 @@ function setLatLng() {
 
 function getCorrelation() {
     if (snpPointsList.length > 0) {
+        var newSnpPointsList = Object.assign(snpPointsList);
+
         var allPossibleKeysList = [];
-        snpPointsList.forEach(function (snpPoints) {
+        newSnpPointsList.forEach(function (snpPoints) {
             snpPoints.forEach(function (point) {
                 allPossibleKeysList.push(point['lat'] + ';' + point['lng']);
             })
@@ -189,7 +193,7 @@ function getCorrelation() {
         allPossibleKeysList = allPossibleKeysList.sort();
 
         var countListList = [];
-        snpPointsList.forEach(function (snpPoints) {
+        newSnpPointsList.forEach(function (snpPoints) {
             var countList = new Array(allPossibleKeysList.length).fill(0);
             snpPoints.forEach(function (point) {
                 countList[allPossibleKeysList.indexOf(point['lat'] + ';' + point['lng'])] = point['count'];
@@ -198,14 +202,15 @@ function getCorrelation() {
         })
 
         var correlationMatrix = [];
-        for (var a = 0; a < snpPointsList.length; a++) {
+        for (var a = 0; a < newSnpPointsList.length; a++) {
             var correlationRow = [];
-            for (var b = 0; b < snpPointsList.length; b++) {
+            for (var b = 0; b < newSnpPointsList.length; b++) {
                 correlationRow.push(jStat.corrcoeff(countListList[a], countListList[b]).toFixed(2));
             }
             correlationMatrix.push(correlationRow);
         }
 
+        snpPointsList = newSnpPointsList;
         document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
         document.getElementById("stateLabel").innerText = "OK.";
     } else {
