@@ -41,17 +41,19 @@ function createMap() {
 
     var snpString = urlParams.get('snps');
     var snpList = getSnpList(snpString);
-    drawMap(snpList);
+    drawMap(snpList, 10);
 }
 
 var heatmapLayersList = [];
 var snpPointsList = [];
+var threshold = 10;
 
-function buildMap() {
+function buildMap(newThreshold) {
+    threshold = typeof newThreshold == 'undefined' ? threshold : 10 - newThreshold;
     clearMap();
     var snpString = document.getElementById("searchForm").value;
     var snpList = getSnpList(snpString);
-    drawMap(snpList);
+    drawMap(snpList, threshold);
 }
 
 function clearMap() {
@@ -96,7 +98,7 @@ function getSnpList(snpString) {
     }
 }
 
-function drawMap(snpList) {
+function drawMap(snpList, threshold) {
     if (snpList !== undefined) {
         snpList.forEach(function (snp, i) {
             getJSON("http://127.0.0.1:8080/snpData/" + snp,
@@ -152,12 +154,6 @@ function getJSON(url, callback) {
         }
     };
     xhr.send();
-}
-
-var threshold = 10;
-
-function changeThreshold(value) {
-    threshold = 10 - value;
 }
 
 function getLatLng() {
