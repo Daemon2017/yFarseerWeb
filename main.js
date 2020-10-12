@@ -1,5 +1,5 @@
-var gradientKeys = ['.10', '.20', '.30', '.40', '.50', '.60', '.70', '.80', '.90', '1.'];
-var gradientValues = [
+const gradientKeys = ['.10', '.20', '.30', '.40', '.50', '.60', '.70', '.80', '.90', '1.'];
+const gradientValues = [
     ['#F9EBEA', '#F2D7D5', '#E6B0AA', '#D98880', '#CD6155', '#C0392B', '#A93226', '#922B21', '#7B241C', '#641E16'],
     ['#F4ECF7', '#E8DAEF', '#D2B4DE', '#BB8FCE', '#A569BD', '#8E44AD', '#7D3C98', '#6C3483', '#5B2C6F', '#4A235A'],
     ['#EAF2F8', '#D4E6F1', '#A9CCE3', '#7FB3D5', '#5499C7', '#2980B9', '#2471A3', '#1F618D', '#1A5276', '#154360'],
@@ -44,71 +44,6 @@ function createMap() {
     drawMap(snpList);
 }
 
-function getLatLng() {
-    return function () {
-        var center = map.getCenter();
-        var lat = center.lat;
-        var lng = center.lng;
-        document.getElementById("latForm").value = lat;
-        document.getElementById("lngForm").value = lng;
-    };
-}
-
-function setLatLng() {
-    try {
-        var lat = Number(document.getElementById("latForm").value);
-        var lng = Number(document.getElementById("lngForm").value);
-        map.panTo(new L.LatLng(lat, lng));
-        document.getElementById("stateLabel").innerText = "OK.";
-    } catch (e) {
-        document.getElementById("stateLabel").innerText = "Error: Both Lat and Lng must be a number!";
-    }
-}
-
-function getJSON(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function () {
-        var status = xhr.status;
-        if (status === 200) {
-            callback(null, xhr.response);
-        } else {
-            callback(status, xhr.response);
-        }
-    };
-    xhr.send();
-}
-
-var intensity = 10;
-
-function changeIntensity(value) {
-    intensity = 10 - value;
-}
-
-function getSnpList(snpString) {
-    if (snpString != null) {
-        snpString = snpString.toUpperCase().replace(/ /g, '');
-        if (snpString === "") {
-            document.getElementById("stateLabel").innerText = "Error: No SNP was specified!";
-            throw "Error!";
-        }
-
-        var snpList = snpString.split(',');
-        snpList = snpList.filter(function (snp) {
-            return snp !== '';
-        });
-        document.getElementById("searchForm").value = snpList.join(',')
-
-        if (!(snpList.length > 0 && snpList.length < 10)) {
-            document.getElementById("stateLabel").innerText = "Error: The number of SNPs should be in the range [1;10]!";
-            throw "Error!";
-        }
-
-        return snpList;
-    }
-}
-
 var heatmapLayersList = [];
 var snpPointsList = [];
 
@@ -138,6 +73,29 @@ function clearMap() {
     document.getElementById("stateLabel").innerText = "OK.";
 }
 
+function getSnpList(snpString) {
+    if (snpString != null) {
+        snpString = snpString.toUpperCase().replace(/ /g, '');
+        if (snpString === "") {
+            document.getElementById("stateLabel").innerText = "Error: No SNP was specified!";
+            throw "Error!";
+        }
+
+        var snpList = snpString.split(',');
+        snpList = snpList.filter(function (snp) {
+            return snp !== '';
+        });
+        document.getElementById("searchForm").value = snpList.join(',')
+
+        if (!(snpList.length > 0 && snpList.length < 10)) {
+            document.getElementById("stateLabel").innerText = "Error: The number of SNPs should be in the range [1;10]!";
+            throw "Error!";
+        }
+
+        return snpList;
+    }
+}
+
 function drawMap(snpList) {
     if (snpList !== undefined) {
         snpList.forEach(function (snp, i) {
@@ -145,7 +103,7 @@ function drawMap(snpList) {
                 function (err, data) {
                     if (err === null) {
                         var heatmapLayerData = {
-                            max: intensity,
+                            max: threshold,
                             data: data
                         };
 
@@ -181,18 +139,46 @@ function drawMap(snpList) {
     }
 }
 
-function getHtmlTable(myArray) {
-    var result = "<table border=1><caption>Correlation matrix:</caption>";
-    myArray.forEach(function (row) {
-        result += "<tr>";
-        row.forEach(function (column) {
-            result += "<td>" + column + "</td>";
-        })
-        result += "</tr>";
-    })
-    result += "</table>";
+function getJSON(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+        var status = xhr.status;
+        if (status === 200) {
+            callback(null, xhr.response);
+        } else {
+            callback(status, xhr.response);
+        }
+    };
+    xhr.send();
+}
 
-    return result;
+var threshold = 10;
+
+function changeThreshold(value) {
+    threshold = 10 - value;
+}
+
+function getLatLng() {
+    return function () {
+        var center = map.getCenter();
+        var lat = center.lat;
+        var lng = center.lng;
+        document.getElementById("latForm").value = lat;
+        document.getElementById("lngForm").value = lng;
+    };
+}
+
+function setLatLng() {
+    try {
+        var lat = Number(document.getElementById("latForm").value);
+        var lng = Number(document.getElementById("lngForm").value);
+        map.panTo(new L.LatLng(lat, lng));
+        document.getElementById("stateLabel").innerText = "OK.";
+    } catch (e) {
+        document.getElementById("stateLabel").innerText = "Error: Both Lat and Lng must be a number!";
+    }
 }
 
 function getCorrelation() {
@@ -229,4 +215,18 @@ function getCorrelation() {
     } else {
         document.getElementById("stateLabel").innerText = "Error: No SNP data was received!";
     }
+}
+
+function getHtmlTable(myArray) {
+    var result = "<table border=1><caption>Correlation matrix:</caption>";
+    myArray.forEach(function (row) {
+        result += "<tr>";
+        row.forEach(function (column) {
+            result += "<td>" + column + "</td>";
+        })
+        result += "</tr>";
+    })
+    result += "</table>";
+
+    return result;
 }
