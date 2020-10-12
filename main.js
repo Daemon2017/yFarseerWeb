@@ -98,14 +98,14 @@ function getSnpList(snpString) {
     }
 }
 
-function drawMap(snpList, threshold) {
+function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
         snpList.forEach(function (snp, i) {
             getJSON("http://127.0.0.1:8080/snpData/" + snp,
                 function (err, data) {
                     if (err === null) {
                         var heatmapLayerData = {
-                            max: threshold,
+                            max: thresholdValue,
                             data: data
                         };
 
