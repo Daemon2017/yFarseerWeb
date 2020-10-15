@@ -63,11 +63,13 @@ function clearMap() {
 
     document.getElementById("correlationMatrix").innerHTML = null;
 
-    map.eachLayer(function (layer) {
+    var newMap = Object.assign(map);
+    newMap.eachLayer(function (layer) {
         if (layer !== baseLayer) {
-            map.removeLayer(layer);
+            newMap.removeLayer(layer);
         }
     })
+    map = newMap;
 
     snpPointsList = [];
 
@@ -99,7 +101,9 @@ function getSnpList(snpString) {
 
 function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
-        var newSnpPointsList = Object.assign(snpPointsList);
+        var newSnpPointsList = [];
+        // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
+        var newMap = Object.assign(map);
 
         snpList.forEach(function (snp, i) {
             getJSON("http://127.0.0.1:8080/snpData/" + snp,
@@ -131,7 +135,7 @@ function drawMap(snpList, thresholdValue) {
 
                         var heatmapLayer = new HeatmapOverlay(heatmapCfg);
                         heatmapLayer.setData(heatmapLayerData);
-                        map.addLayer(heatmapLayer);
+                        newMap.addLayer(heatmapLayer);
 
                         document.getElementById("cb" + i).style = `background-color:${gradientValues[i][9]}`;
                     }
@@ -139,6 +143,7 @@ function drawMap(snpList, thresholdValue) {
         })
 
         snpPointsList = newSnpPointsList;
+        map = newMap;
         document.getElementById("stateLabel").innerText = "OK.";
     }
 }
