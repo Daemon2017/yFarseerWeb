@@ -223,71 +223,57 @@ function getSnpList(snpString) {
     }
 }
 
-function drawMap(snpList, thresholdValue) {
+async function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
         var newSnpPointsList = [];
         // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
         var newMap = Object.assign(map);
 
-        snpList.forEach(function (snp, i) {
-            getJSON(`http://127.0.0.1:8080/snpData/${snp}`, function (
-                err,
-                data
-            ) {
-                if (err === null) {
-                    var heatmapLayerData = {
-                        max: thresholdValue,
-                        data: data,
-                    };
+        for (const snp of snpList) {
+            try {
+                let i = snpList.indexOf(snp);
+                let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
+                let data = await response.json();
 
-                    newSnpPointsList.push(data);
+                var heatmapLayerData = {
+                    max: thresholdValue,
+                    data: data,
+                };
 
-                    var gradient = {};
-                    gradientKeys.forEach(function (key, j) {
-                        gradient[gradientKeys[j]] = gradientValues[i][j];
-                    });
+                newSnpPointsList.push(data);
 
-                    var heatmapCfg = {
-                        radius: 2,
-                        maxOpacity: 0.9,
-                        minOpacity: 0.1,
-                        scaleRadius: true,
-                        useLocalExtrema: false,
-                        latField: "lat",
-                        lngField: "lng",
-                        valueField: "count",
-                        gradient: gradient,
-                    };
+                var gradient = {};
+                gradientKeys.forEach(function (key, j) {
+                    gradient[gradientKeys[j]] = gradientValues[i][j];
+                });
 
-                    var heatmapLayer = new HeatmapOverlay(heatmapCfg);
-                    heatmapLayer.setData(heatmapLayerData);
-                    newMap.addLayer(heatmapLayer);
+                var heatmapCfg = {
+                    radius: 2,
+                    maxOpacity: 0.9,
+                    minOpacity: 0.1,
+                    scaleRadius: true,
+                    useLocalExtrema: false,
+                    latField: "lat",
+                    lngField: "lng",
+                    valueField: "count",
+                    gradient: gradient,
+                };
 
-                    document.getElementById(`cb${i}`).style =
-                        `background-color:${gradientValues[i][9]}`;
-                }
-            });
-        });
+                var heatmapLayer = new HeatmapOverlay(heatmapCfg);
+                heatmapLayer.setData(heatmapLayerData);
+                newMap.addLayer(heatmapLayer);
+
+                document.getElementById(`cb${i}`).style =
+                    `background-color:${gradientValues[i][9]}`;
+            } catch (e) {
+
+            }
+        }
 
         snpPointsList = newSnpPointsList;
         map = newMap;
         document.getElementById("stateLabel").innerText = "OK.";
     }
-}
-
-function getJSON(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.responseType = "json";
-    xhr.onload = function () {
-        var status = xhr.status;
-        if (status === 200) {
-            callback(null, xhr.response);
-        } else {
-            callback(status, xhr.response);
-        }
-    };
-    xhr.send();
 }
 
 function getLatLng() {
