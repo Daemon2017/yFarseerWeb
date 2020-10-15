@@ -263,9 +263,8 @@ function drawMap(snpList, thresholdValue) {
                     heatmapLayer.setData(heatmapLayerData);
                     newMap.addLayer(heatmapLayer);
 
-                    document.getElementById(
-                        `cb${i}`
-                    ).style = `background-color:${gradientValues[i][9]}`;
+                    document.getElementById(`cb${i}`).style =
+                        `background-color:${gradientValues[i][9]}`;
                 }
             });
         });
@@ -330,11 +329,7 @@ function getCorrelation() {
         newSnpPointsList.forEach(function (snpPoints) {
             var countList = new Array(allPossibleKeysList.length).fill(0);
             snpPoints.forEach(function (point) {
-                countList[
-                    allPossibleKeysList.indexOf(
-                        `${point["lat"]};${point["lng"]}`
-                    )
-                ] = point["count"];
+                countList[allPossibleKeysList.indexOf(`${point["lat"]};${point["lng"]}`)] = point["count"];
             });
             countListList.push(countList);
         });
@@ -343,19 +338,16 @@ function getCorrelation() {
         for (var a = 0; a < newSnpPointsList.length; a++) {
             var correlationRow = [];
             for (var b = 0; b < newSnpPointsList.length; b++) {
-                correlationRow.push(
-                    jStat
-                        .corrcoeff(countListList[a], countListList[b])
-                        .toFixed(2)
+                correlationRow.push(jStat
+                    .corrcoeff(countListList[a], countListList[b])
+                    .toFixed(2)
                 );
             }
             correlationMatrix.push(correlationRow);
         }
 
         snpPointsList = newSnpPointsList;
-        document.getElementById("correlationMatrix").innerHTML = getHtmlTable(
-            correlationMatrix
-        );
+        document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
         document.getElementById("stateLabel").innerText = "OK.";
     } else {
         document.getElementById("stateLabel").innerText =
@@ -386,6 +378,5 @@ function getHtmlTable(myArray) {
         result += "</tr>";
     });
     result += "</table>";
-
     return result;
 }
