@@ -224,10 +224,22 @@ function getCorrelation() {
 }
 
 function getHtmlTable(myArray) {
+    // TODO: в заголовках должны быть имена SNP.
     var result = "<table id='correlTable'><caption>Correlation matrix:</caption>";
-    myArray.forEach(function (row) {
+    myArray.forEach(function (row, i) {
         result += "<tr>";
-        row.forEach(function (column) {
+        if (i === 0) {
+            result += "<th>" + "</th>";
+            row.forEach(function (column, j) {
+                result += "<th>" + `SNP #${j}` + "</th>";
+            })
+            result += "</tr>";
+            result += "<tr>";
+        }
+        row.forEach(function (column, j) {
+            if (j === 0) {
+                result += "<td>" + `SNP #${i}` + "</td>";
+            }
             result += "<td>" + column + "</td>";
         })
         result += "</tr>";
