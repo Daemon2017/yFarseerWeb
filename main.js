@@ -49,7 +49,7 @@ var snpPointsList = [];
 var threshold = 10;
 
 function buildMap(newThreshold) {
-    threshold = typeof newThreshold == 'undefined' ? threshold : 10 - newThreshold;
+    threshold = newThreshold === undefined ? threshold : 10 - newThreshold;
     clearMap();
     var snpString = document.getElementById("searchForm").value;
     var snpList = getSnpList(snpString);
@@ -133,7 +133,7 @@ function drawMap(snpList, thresholdValue) {
                         heatmapLayer.setData(heatmapLayerData);
                         map.addLayer(heatmapLayer);
 
-                        document.getElementById("cb" + i).style = "background-color:" + gradientValues[i][9];
+                        document.getElementById("cb" + i).style = `background-color:${gradientValues[i][9]}`;
                     }
                 });
         })
@@ -219,7 +219,7 @@ function getCorrelation() {
 }
 
 function getHtmlTable(myArray) {
-    var result = "<table border=1><caption>Correlation matrix:</caption>";
+    var result = "<table id='correlTable'><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row) {
         result += "<tr>";
         row.forEach(function (column) {
