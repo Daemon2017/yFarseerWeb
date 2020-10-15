@@ -37,7 +37,15 @@ body * {
     border: 1px solid black;
 }
 
-#latForm, #lngForm, #setLatLngButton, #searchForm, #searchButton, #maxCountSlider, #correlButton, #clearButton, #correlTable {
+#latForm,
+#lngForm,
+#setLatLngButton,
+#searchForm,
+#searchButton,
+#maxCountSlider,
+#correlButton,
+#clearButton,
+#correlTable {
     pointer-events: auto;
 }
 
@@ -47,6 +55,5 @@ body * {
     float: left;
     width: 10px;
     height: 10px;
-    border: 1px solid rgba(0, 0, 0, .1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
-
