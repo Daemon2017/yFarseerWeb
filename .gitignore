@@ -3,3 +3,4 @@ __files/
 .idea/
 *.jar
 *.bat
+*.code-workspace
