@@ -1,79 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>yMapperWeb Light</title>
-        <link rel="stylesheet" type="text/css" href="style.css" />
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="https://unpkg.com/leaflet@latest/dist/leaflet.css"
-        />
-        <style>
-            .leaflet-zoom-hide {
-                position: absolute !important;
-            }
-        </style>
-        <script src="main.js"></script>
-        <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/build/heatmap.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/plugins/leaflet-heatmap/leaflet-heatmap.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
-    </head>
-    <body onload="createMap()">
-        <div id="searchLayer">
-            <label for="latForm" id="latLabel">
-                Lat:
-                <input type="search" id="latForm" placeholder="25.6586" />
-            </label>
-            <label for="lngForm" id="lngLabel">
-                Lng:
-                <input type="search" id="lngForm" placeholder="-80.3568" />
-            </label>
-            <button type="submit" id="setLatLngButton" onclick="setLatLng()">
-                Set
-            </button>
-            <br />
-            <label for="searchForm" id="searchLabel">
-                SNPs:
-                <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
-            </label>
-            <button type="submit" id="searchButton" onclick="buildMap()">
-                Draw
-            </button>
-            <button type="submit" id="correlButton" onclick="getCorrelation()">
-                Correl
-            </button>
-            <button type="submit" id="clearButton" onclick="clearMap()">
-                Clear
-            </button>
-            <label id="stateLabel"> OK. </label>
-            <br />
-            <div class="box" id="cb0"></div>
-            <div class="box" id="cb1"></div>
-            <div class="box" id="cb2"></div>
-            <div class="box" id="cb3"></div>
-            <div class="box" id="cb4"></div>
-            <div class="box" id="cb5"></div>
-            <div class="box" id="cb6"></div>
-            <div class="box" id="cb7"></div>
-            <div class="box" id="cb8"></div>
-            <div class="box" id="cb9"></div>
-            <label for="maxCountSlider" id="maxCountLabel">
-                Intensity:
-                <input
-                    type="range"
-                    id="maxCountSlider"
-                    oninput="buildMap(this.value)"
-                    min="0"
-                    max="10"
-                    value="0"
-                    class="slider"
-                />
-            </label>
-            <br />
-            <div id="correlationMatrix"></div>
-        </div>
-        <div id="mapLayer"></div>
-    </body>
+
+<head>
+    <meta charset="utf-8" />
+    <title>yMapperWeb Light</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@latest/dist/leaflet.css" />
+    <style>
+        .leaflet-zoom-hide {
+            position: absolute !important;
+        }
+    </style>
+    <script src="main.js"></script>
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/build/heatmap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/plugins/leaflet-heatmap/leaflet-heatmap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+</head>
+
+<body onload="createMap()">
+    <div id="searchLayer">
+        <label for="latForm" id="latLabel">
+            Lat:
+            <input type="search" id="latForm" placeholder="25.6586" />
+        </label>
+        <label for="lngForm" id="lngLabel">
+            Lng:
+            <input type="search" id="lngForm" placeholder="-80.3568" />
+        </label>
+        <button type="submit" id="setLatLngButton" onclick="setLatLng()">
+            Set
+        </button>
+        <br />
+        <label for="searchForm" id="searchLabel">
+            SNPs:
+            <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
+        </label>
+        <button type="submit" id="searchButton" onclick="buildMap()">
+            Draw
+        </button>
+        <button type="submit" id="correlButton" onclick="getCorrelation()">
+            Correl
+        </button>
+        <button type="submit" id="clearButton" onclick="clearMap()">
+            Clear
+        </button>
+        <label id="stateLabel"> OK. </label>
+        <br />
+        <div class="box" id="cb0"></div>
+        <div class="box" id="cb1"></div>
+        <div class="box" id="cb2"></div>
+        <div class="box" id="cb3"></div>
+        <div class="box" id="cb4"></div>
+        <div class="box" id="cb5"></div>
+        <div class="box" id="cb6"></div>
+        <div class="box" id="cb7"></div>
+        <div class="box" id="cb8"></div>
+        <div class="box" id="cb9"></div>
+        <label for="maxCountSlider" id="maxCountLabel">
+            Intensity:
+            <input type="range" id="maxCountSlider" oninput="buildMap(this.value)" min="0" max="10" value="0"
+                class="slider" />
+        </label>
+        <br />
+        <div id="correlationMatrix"></div>
+    </div>
+    <div id="mapLayer"></div>
+</body>
+
 </html>
