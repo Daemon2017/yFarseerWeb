@@ -166,7 +166,6 @@ function createMap() {
     drawMap(snpList, 10);
 }
 
-var snpPointsList = [];
 var threshold = 10;
 
 function buildMap(newThreshold) {
@@ -190,8 +189,6 @@ function clearMap() {
             map.removeLayer(layer);
         }
     });
-
-    snpPointsList = [];
 
     document.getElementById("stateLabel").innerText = "OK.";
 }
@@ -224,7 +221,6 @@ function getSnpList(snpString) {
 // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
 async function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
-        var newSnpPointsList = [];
         var errorSnpList = [];
         var i = 0;
         for (const snp of snpList) {
@@ -236,8 +232,6 @@ async function drawMap(snpList, thresholdValue) {
                     max: thresholdValue,
                     data: data,
                 };
-
-                newSnpPointsList.push(data);
 
                 var gradient = {};
                 gradientKeys.forEach(function (key, j) {
@@ -268,16 +262,7 @@ async function drawMap(snpList, thresholdValue) {
             }
         }
 
-        snpPointsList = newSnpPointsList;
-        if (errorSnpList.length === 0) {
-            document.getElementById("stateLabel").innerText = "OK.";
-        } else {
-            document.getElementById("searchForm").value = snpList.filter(function (snp) {
-                return !errorSnpList.includes(snp);
-            }).join(",");
-            document.getElementById("stateLabel").innerText =
-                `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
-        }
+        printState(errorSnpList, snpList);
     }
 }
 
@@ -303,8 +288,40 @@ function setLatLng() {
     }
 }
 
-function getCorrelation() {
-    if (snpPointsList.length > 0) {
+function printState(errorSnpList, snpList) {
+    if (errorSnpList.length === 0) {
+        document.getElementById("stateLabel").innerText = "OK.";
+    } else if (snpList.length - errorSnpList.length === 0) {
+        document.getElementById("stateLabel").innerText =
+            `Error: Data of all SNPs wasn't received!`;
+    } else {
+        document.getElementById("searchForm").value = snpList.filter(function (snp) {
+            return !errorSnpList.includes(snp);
+        }).join(",");
+        document.getElementById("stateLabel").innerText =
+            `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
+    }
+}
+
+async function getCorrelation() {
+    var snpString = document.getElementById("searchForm").value;
+    var snpList = getSnpList(snpString);
+
+    var snpPointsList = [];
+    if (snpList !== undefined) {
+        var errorSnpList = [];
+        var i = 0;
+        for (const snp of snpList) {
+            try {
+                let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
+                let data = await response.json();
+                snpPointsList.push(data);
+                i++;
+            } catch (e) {
+                errorSnpList.push(snp);
+            }
+        }
+
         var allPossibleKeysList = [];
         snpPointsList.forEach(function (snpPoints) {
             snpPoints.forEach(function (point) {
@@ -335,11 +352,10 @@ function getCorrelation() {
             correlationMatrix.push(correlationRow);
         }
 
-        document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
-        document.getElementById("stateLabel").innerText = "OK.";
-    } else {
-        document.getElementById("stateLabel").innerText =
-            "Error: No SNP data was received!";
+        if (snpList.length - errorSnpList.length > 0) {
+            document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
+        }
+        printState(errorSnpList, snpList);
     }
 }
 
