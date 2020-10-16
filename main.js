@@ -292,6 +292,9 @@ function printState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById("stateLabel").innerText = "OK.";
     } else if (snpList.length - errorSnpList.length === 0) {
+        document.getElementById("searchForm").value = snpList.filter(function (snp) {
+            return !errorSnpList.includes(snp);
+        }).join(",");
         document.getElementById("stateLabel").innerText =
             `Error: Data of all SNPs wasn't received!`;
     } else {
@@ -352,15 +355,18 @@ async function getCorrelation() {
             correlationMatrix.push(correlationRow);
         }
 
-        if (snpList.length - errorSnpList.length > 0) {
-            document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
+        var successSnpList = snpList.filter(function (snp) {
+            return !errorSnpList.includes(snp);
+        });
+        if (successSnpList.length > 0) {
+            document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix, successSnpList);
         }
+
         printState(errorSnpList, snpList);
     }
 }
 
-// TODO: в заголовках должны быть имена SNP.
-function getHtmlTable(myArray) {
+function getHtmlTable(myArray, successSnpList) {
     var result =
         "<table id='correlTable'><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row, i) {
@@ -368,14 +374,14 @@ function getHtmlTable(myArray) {
         if (i === 0) {
             result += "<th>" + "</th>";
             row.forEach(function (column, j) {
-                result += `<th>SNP#${j}</th>`;
+                result += `<th>${successSnpList[j]}</th>`;
             });
             result += "</tr>";
             result += "<tr>";
         }
         row.forEach(function (column, j) {
             if (j === 0) {
-                result += `<td>SNP#${i}</td>`;
+                result += `<td>${successSnpList[i]}</td>`;
             }
             result += "<td>" + column + "</td>";
         });
