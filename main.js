@@ -185,13 +185,11 @@ function clearMap() {
 
     document.getElementById("correlationMatrix").innerHTML = null;
 
-    var newMap = Object.assign(map);
-    newMap.eachLayer(function (layer) {
+    map.eachLayer(function (layer) {
         if (layer !== baseLayer) {
-            newMap.removeLayer(layer);
+            map.removeLayer(layer);
         }
     });
-    map = newMap;
 
     snpPointsList = [];
 
@@ -223,12 +221,10 @@ function getSnpList(snpString) {
     }
 }
 
+// TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
 async function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
         var newSnpPointsList = [];
-        // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
-        var newMap = Object.assign(map);
-
         var errorSnpList = [];
         var i = 0;
         for (const snp of snpList) {
@@ -262,7 +258,7 @@ async function drawMap(snpList, thresholdValue) {
 
                 var heatmapLayer = new HeatmapOverlay(heatmapCfg);
                 heatmapLayer.setData(heatmapLayerData);
-                newMap.addLayer(heatmapLayer);
+                map.addLayer(heatmapLayer);
 
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
@@ -273,7 +269,6 @@ async function drawMap(snpList, thresholdValue) {
         }
 
         snpPointsList = newSnpPointsList;
-        map = newMap;
         if (errorSnpList.length === 0) {
             document.getElementById("stateLabel").innerText = "OK.";
         } else {
@@ -310,10 +305,8 @@ function setLatLng() {
 
 function getCorrelation() {
     if (snpPointsList.length > 0) {
-        var newSnpPointsList = Object.assign(snpPointsList);
-
         var allPossibleKeysList = [];
-        newSnpPointsList.forEach(function (snpPoints) {
+        snpPointsList.forEach(function (snpPoints) {
             snpPoints.forEach(function (point) {
                 allPossibleKeysList.push(`${point["lat"]};${point["lng"]}`);
             });
@@ -322,7 +315,7 @@ function getCorrelation() {
         allPossibleKeysList = allPossibleKeysList.sort();
 
         var countListList = [];
-        newSnpPointsList.forEach(function (snpPoints) {
+        snpPointsList.forEach(function (snpPoints) {
             var countList = new Array(allPossibleKeysList.length).fill(0);
             snpPoints.forEach(function (point) {
                 countList[allPossibleKeysList.indexOf(`${point["lat"]};${point["lng"]}`)] = point["count"];
@@ -331,9 +324,9 @@ function getCorrelation() {
         });
 
         var correlationMatrix = [];
-        for (var a = 0; a < newSnpPointsList.length; a++) {
+        for (var a = 0; a < snpPointsList.length; a++) {
             var correlationRow = [];
-            for (var b = 0; b < newSnpPointsList.length; b++) {
+            for (var b = 0; b < snpPointsList.length; b++) {
                 correlationRow.push(jStat
                     .corrcoeff(countListList[a], countListList[b])
                     .toFixed(2)
@@ -342,7 +335,6 @@ function getCorrelation() {
             correlationMatrix.push(correlationRow);
         }
 
-        snpPointsList = newSnpPointsList;
         document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix);
         document.getElementById("stateLabel").innerText = "OK.";
     } else {
@@ -351,8 +343,8 @@ function getCorrelation() {
     }
 }
 
+// TODO: в заголовках должны быть имена SNP.
 function getHtmlTable(myArray) {
-    // TODO: в заголовках должны быть имена SNP.
     var result =
         "<table id='correlTable'><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row, i) {
