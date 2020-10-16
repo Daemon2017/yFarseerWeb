@@ -33,7 +33,10 @@ body * {
     pointer-events: none;
 }
 
-#correlTable {
+#correlTable,
+#correlTable th,
+#correlTable tr,
+#correlTable td {
     border: 1px solid black;
 }
 

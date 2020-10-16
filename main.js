@@ -229,9 +229,10 @@ async function drawMap(snpList, thresholdValue) {
         // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
         var newMap = Object.assign(map);
 
+        var errorSnpList = [];
+        var i = 0;
         for (const snp of snpList) {
             try {
-                let i = snpList.indexOf(snp);
                 let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
                 let data = await response.json();
 
@@ -265,14 +266,23 @@ async function drawMap(snpList, thresholdValue) {
 
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
+                i++;
             } catch (e) {
-
+                errorSnpList.push(snp);
             }
         }
 
         snpPointsList = newSnpPointsList;
         map = newMap;
-        document.getElementById("stateLabel").innerText = "OK.";
+        if (errorSnpList.length === 0) {
+            document.getElementById("stateLabel").innerText = "OK.";
+        } else {
+            document.getElementById("searchForm").value = snpList.filter(function (snp) {
+                return !errorSnpList.includes(snp);
+            }).join(",");
+            document.getElementById("stateLabel").innerText =
+                `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
+        }
     }
 }
 
@@ -350,14 +360,14 @@ function getHtmlTable(myArray) {
         if (i === 0) {
             result += "<th>" + "</th>";
             row.forEach(function (column, j) {
-                result += "<th>" + `SNP #${j}` + "</th>";
+                result += `<th>SNP#${j}</th>`;
             });
             result += "</tr>";
             result += "<tr>";
         }
         row.forEach(function (column, j) {
             if (j === 0) {
-                result += "<td>" + `SNP #${i}` + "</td>";
+                result += `<td>SNP#${i}</td>`;
             }
             result += "<td>" + column + "</td>";
         });
