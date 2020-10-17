@@ -133,14 +133,14 @@ const gradientValues = [
     ],
 ];
 
-var map;
-var baseLayer;
+let map;
+let baseLayer;
 
 function createMap() {
-    var queryString = window.location.search;
-    var urlParams = new URLSearchParams(queryString);
-    var lat = urlParams.get("lat") == null ? 25.6586 : urlParams.get("lat");
-    var lng = urlParams.get("lng") == null ? -80.3568 : urlParams.get("lng");
+    let queryString = window.location.search;
+    let urlParams = new URLSearchParams(queryString);
+    let lat = urlParams.get("lat") == null ? 25.6586 : urlParams.get("lat");
+    let lng = urlParams.get("lng") == null ? -80.3568 : urlParams.get("lng");
     document.getElementById("latForm").value = lat;
     document.getElementById("lngForm").value = lng;
 
@@ -159,23 +159,23 @@ function createMap() {
 
     map.addEventListener("move", getLatLng());
 
-    var snpString = urlParams.get("snps");
-    var snpList = getSnpList(snpString);
+    let snpString = urlParams.get("snps");
+    let snpList = getSnpList(snpString);
     drawMap(snpList, 10);
 }
 
-var threshold = 10;
+let threshold = 10;
 
 function buildMap(newThreshold) {
     threshold = newThreshold === undefined ? threshold : 10 - newThreshold;
     clearMap();
-    var snpString = document.getElementById("searchForm").value;
-    var snpList = getSnpList(snpString);
+    let snpString = document.getElementById("searchForm").value;
+    let snpList = getSnpList(snpString);
     drawMap(snpList, threshold);
 }
 
 function clearMap() {
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
     }
@@ -200,7 +200,7 @@ function getSnpList(snpString) {
             throw "Error!";
         }
 
-        var snpList = snpString.split(",");
+        let snpList = snpString.split(",");
         snpList = snpList.filter(function (snp) {
             return snp !== "";
         });
@@ -219,24 +219,24 @@ function getSnpList(snpString) {
 // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
 async function drawMap(snpList, thresholdValue) {
     if (snpList !== undefined) {
-        var errorSnpList = [];
-        var i = 0;
+        let errorSnpList = [];
+        let i = 0;
         for (const snp of snpList) {
             try {
                 let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
                 let data = await response.json();
 
-                var heatmapLayerData = {
+                let heatmapLayerData = {
                     max: thresholdValue,
                     data: data,
                 };
 
-                var gradient = {};
+                let gradient = {};
                 gradientKeys.forEach(function (key, j) {
                     gradient[gradientKeys[j]] = gradientValues[i][j];
                 });
 
-                var heatmapCfg = {
+                let heatmapCfg = {
                     radius: 2,
                     maxOpacity: 0.9,
                     minOpacity: 0.1,
@@ -248,7 +248,7 @@ async function drawMap(snpList, thresholdValue) {
                     gradient: gradient,
                 };
 
-                var heatmapLayer = new HeatmapOverlay(heatmapCfg);
+                let heatmapLayer = new HeatmapOverlay(heatmapCfg);
                 heatmapLayer.setData(heatmapLayerData);
                 map.addLayer(heatmapLayer);
 
@@ -266,9 +266,9 @@ async function drawMap(snpList, thresholdValue) {
 
 function getLatLng() {
     return function () {
-        var center = map.getCenter();
-        var lat = center.lat;
-        var lng = center.lng;
+        let center = map.getCenter();
+        let lat = center.lat;
+        let lng = center.lng;
         document.getElementById("latForm").value = lat;
         document.getElementById("lngForm").value = lng;
     };
@@ -276,8 +276,8 @@ function getLatLng() {
 
 function setLatLng() {
     try {
-        var lat = Number(document.getElementById("latForm").value);
-        var lng = Number(document.getElementById("lngForm").value);
+        let lat = Number(document.getElementById("latForm").value);
+        let lng = Number(document.getElementById("lngForm").value);
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById("stateLabel").innerText = "OK.";
     } catch (e) {
@@ -305,13 +305,13 @@ function printState(errorSnpList, snpList) {
 }
 
 async function getCorrelation() {
-    var snpString = document.getElementById("searchForm").value;
-    var snpList = getSnpList(snpString);
+    let snpString = document.getElementById("searchForm").value;
+    let snpList = getSnpList(snpString);
 
-    var snpPointsList = [];
+    let snpPointsList = [];
     if (snpList !== undefined) {
-        var errorSnpList = [];
-        var i = 0;
+        let errorSnpList = [];
+        let i = 0;
         for (const snp of snpList) {
             try {
                 let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
@@ -323,7 +323,7 @@ async function getCorrelation() {
             }
         }
 
-        var allPossibleKeysList = [];
+        let allPossibleKeysList = [];
         snpPointsList.forEach(function (snpPoints) {
             snpPoints.forEach(function (point) {
                 allPossibleKeysList.push(`${point["lat"]};${point["lng"]}`);
@@ -332,19 +332,19 @@ async function getCorrelation() {
         allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
         allPossibleKeysList = allPossibleKeysList.sort();
 
-        var countListList = [];
+        let countListList = [];
         snpPointsList.forEach(function (snpPoints) {
-            var countList = new Array(allPossibleKeysList.length).fill(0);
+            let countList = new Array(allPossibleKeysList.length).fill(0);
             snpPoints.forEach(function (point) {
                 countList[allPossibleKeysList.indexOf(`${point["lat"]};${point["lng"]}`)] = point["count"];
             });
             countListList.push(countList);
         });
 
-        var correlationMatrix = [];
-        for (var a = 0; a < snpPointsList.length; a++) {
-            var correlationRow = [];
-            for (var b = 0; b < snpPointsList.length; b++) {
+        let correlationMatrix = [];
+        for (let a = 0; a < snpPointsList.length; a++) {
+            let correlationRow = [];
+            for (let b = 0; b < snpPointsList.length; b++) {
                 correlationRow.push(jStat
                     .corrcoeff(countListList[a], countListList[b])
                     .toFixed(2)
@@ -353,7 +353,7 @@ async function getCorrelation() {
             correlationMatrix.push(correlationRow);
         }
 
-        var successSnpList = snpList.filter(function (snp) {
+        let successSnpList = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
         });
         if (successSnpList.length > 0) {
@@ -365,7 +365,7 @@ async function getCorrelation() {
 }
 
 function getHtmlTable(myArray, successSnpList) {
-    var result =
+    let result =
         "<table id='correlTable'><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row, i) {
         result += "<tr>";
