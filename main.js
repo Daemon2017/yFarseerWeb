@@ -138,9 +138,7 @@ let baseLayer;
 let threshold = 10;
 let firstRun = true;
 
-function createMap(newThreshold) {
-    threshold = newThreshold === undefined ? threshold : 10 - newThreshold;
-
+function createMap() {
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
 
@@ -172,6 +170,46 @@ function createMap(newThreshold) {
     let snpList = getSnpList(snpString);
     drawLayers(snpList, threshold);
     firstRun = false;
+}
+
+function setIntensity(thresholdValue) {
+    threshold = thresholdValue === undefined ? threshold : 10 - thresholdValue;
+
+    map.eachLayer(function (oldLayer) {
+        if (oldLayer !== baseLayer) {
+            let data = [];
+            oldLayer._data.forEach(d => {
+                let point = {
+                    lat: d.latlng.lat,
+                    lng: d.latlng.lng,
+                    count: d.count
+                };
+                data.push(point);
+            });
+
+            let gradient = oldLayer._heatmap._config.gradient;
+
+            let heatmapCfg = {
+                radius: 2,
+                maxOpacity: 0.9,
+                minOpacity: 0.1,
+                scaleRadius: true,
+                useLocalExtrema: false,
+                latField: "lat",
+                lngField: "lng",
+                valueField: "count",
+                gradient: gradient,
+            };
+
+            let newLayer = new HeatmapOverlay(heatmapCfg);
+            newLayer.setData({
+                max: threshold,
+                data: data,
+            });
+            map.removeLayer(oldLayer);
+            map.addLayer(newLayer);
+        }
+    });
 }
 
 function clearAll() {
@@ -216,7 +254,6 @@ function getSnpList(snpString) {
     }
 }
 
-// TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
 async function drawLayers(snpList, thresholdValue) {
     if (snpList !== undefined) {
         let errorSnpList = [];
@@ -225,11 +262,6 @@ async function drawLayers(snpList, thresholdValue) {
             try {
                 let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
                 let data = await response.json();
-
-                let heatmapLayerData = {
-                    max: thresholdValue,
-                    data: data,
-                };
 
                 let gradient = {};
                 gradientKeys.forEach(function (key, j) {
@@ -249,7 +281,10 @@ async function drawLayers(snpList, thresholdValue) {
                 };
 
                 let heatmapLayer = new HeatmapOverlay(heatmapCfg);
-                heatmapLayer.setData(heatmapLayerData);
+                heatmapLayer.setData({
+                    max: thresholdValue,
+                    data: data,
+                });
                 map.addLayer(heatmapLayer);
 
                 document.getElementById(`cb${i}`).style =
