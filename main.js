@@ -135,43 +135,43 @@ const gradientValues = [
 
 let map;
 let baseLayer;
+let threshold = 10;
+let firstRun = true;
 
-function createMap() {
+function createMap(newThreshold) {
+    threshold = newThreshold === undefined ? threshold : 10 - newThreshold;
+
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
-    let lat = urlParams.get("lat") == null ? 25.6586 : urlParams.get("lat");
-    let lng = urlParams.get("lng") == null ? -80.3568 : urlParams.get("lng");
-    document.getElementById("latForm").value = lat;
-    document.getElementById("lngForm").value = lng;
 
-    baseLayer = L.tileLayer(
-        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://cloudmade.com">CloudMade</a>',
-            maxZoom: 10,
-        }
-    );
+    if (firstRun === true) {
+        let lat = urlParams.get("lat") == null ? 25.6586 : urlParams.get("lat");
+        let lng = urlParams.get("lng") == null ? -80.3568 : urlParams.get("lng");
+        document.getElementById("latForm").value = lat;
+        document.getElementById("lngForm").value = lng;
 
-    map = new L.Map("mapLayer", {
-        center: new L.LatLng(lat, lng),
-        zoom: 4,
-        layers: [baseLayer],
-    });
+        baseLayer = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://cloudmade.com">CloudMade</a>',
+                maxZoom: 10,
+            }
+        );
 
-    map.addEventListener("move", getLatLng());
+        map = new L.Map("mapLayer", {
+            center: new L.LatLng(lat, lng),
+            zoom: 4,
+            layers: [baseLayer],
+        });
 
-    let snpString = urlParams.get("snps");
-    let snpList = getSnpList(snpString);
-    drawMap(snpList, 10);
-}
+        map.addEventListener("move", getLatLng());
+    } else {
+        clearMap();
+    }
 
-let threshold = 10;
-
-function buildMap(newThreshold) {
-    threshold = newThreshold === undefined ? threshold : 10 - newThreshold;
-    clearMap();
-    let snpString = document.getElementById("searchForm").value;
+    let snpString = firstRun === true ? urlParams.get("snps") : document.getElementById("searchForm").value;
     let snpList = getSnpList(snpString);
     drawMap(snpList, threshold);
+    firstRun = false;
 }
 
 function clearMap() {

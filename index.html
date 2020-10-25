@@ -36,7 +36,7 @@
             SNPs:
             <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
         </label>
-        <button type="submit" id="searchButton" onclick="buildMap()">
+        <button type="submit" id="searchButton" onclick="createMap()">
             Draw
         </button>
         <button type="submit" id="correlButton" onclick="getCorrelation()">
@@ -59,7 +59,7 @@
         <div class="box" id="cb9"></div>
         <label for="maxCountSlider" id="maxCountLabel">
             Intensity:
-            <input type="range" id="maxCountSlider" oninput="buildMap(this.value)" min="0" max="10" value="0"
+            <input type="range" id="maxCountSlider" oninput="createMap(this.value)" min="0" max="10" value="0"
                 class="slider" />
         </label>
         <br />
