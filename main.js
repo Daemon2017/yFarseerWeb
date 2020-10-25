@@ -165,16 +165,16 @@ function createMap(newThreshold) {
 
         map.addEventListener("move", getLatLng());
     } else {
-        clearMap();
+        clearAll();
     }
 
     let snpString = firstRun === true ? urlParams.get("snps") : document.getElementById("searchForm").value;
     let snpList = getSnpList(snpString);
-    drawMap(snpList, threshold);
+    drawLayers(snpList, threshold);
     firstRun = false;
 }
 
-function clearMap() {
+function clearAll() {
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
@@ -217,7 +217,7 @@ function getSnpList(snpString) {
 }
 
 // TODO: при быстром изменении интенсивности, в map попадают старые слои - надо разобраться.
-async function drawMap(snpList, thresholdValue) {
+async function drawLayers(snpList, thresholdValue) {
     if (snpList !== undefined) {
         let errorSnpList = [];
         let i = 0;
