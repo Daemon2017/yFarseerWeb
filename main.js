@@ -135,7 +135,7 @@ const gradientValues = [
 
 let map;
 let baseLayer;
-let threshold = 10;
+let threshold = 5;
 let firstRun = true;
 
 function createMap() {
@@ -143,8 +143,8 @@ function createMap() {
     let urlParams = new URLSearchParams(queryString);
 
     if (firstRun === true) {
-        let lat = urlParams.get("lat") == null ? 25.6586 : urlParams.get("lat");
-        let lng = urlParams.get("lng") == null ? -80.3568 : urlParams.get("lng");
+        let lat = urlParams.get("lat") == null ? 48.814170 : urlParams.get("lat");
+        let lng = urlParams.get("lng") == null ? 23.169720 : urlParams.get("lng");
         document.getElementById("latForm").value = lat;
         document.getElementById("lngForm").value = lng;
 
@@ -190,7 +190,7 @@ function setIntensity(thresholdValue) {
             let gradient = oldLayer._heatmap._config.gradient;
 
             let heatmapCfg = {
-                radius: 2,
+                radius: 3,
                 maxOpacity: 0.9,
                 minOpacity: 0.1,
                 scaleRadius: true,
@@ -260,8 +260,7 @@ async function drawLayers(snpList, thresholdValue) {
         let i = 0;
         for (const snp of snpList) {
             try {
-                let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
-                let data = await response.json();
+                let data = await getDataFromDb(snp);
 
                 let gradient = {};
                 gradientKeys.forEach(function (key, j) {
@@ -269,7 +268,7 @@ async function drawLayers(snpList, thresholdValue) {
                 });
 
                 let heatmapCfg = {
-                    radius: 2,
+                    radius: 3,
                     maxOpacity: 0.9,
                     minOpacity: 0.1,
                     scaleRadius: true,
@@ -297,6 +296,14 @@ async function drawLayers(snpList, thresholdValue) {
 
         printState(errorSnpList, snpList);
     }
+}
+
+async function getDataFromDb(snp) {
+    let db = firebase.firestore();
+    let snpRef = db.collection("snps").doc(snp);
+    let snpDoc = await snpRef.get();
+    let data = JSON.parse(snpDoc.data().data);
+    return data;
 }
 
 function getLatLng() {
@@ -349,8 +356,8 @@ async function getCorrelation() {
         let i = 0;
         for (const snp of snpList) {
             try {
-                let response = await fetch(`http://127.0.0.1:8080/snpData/${snp}`);
-                let data = await response.json();
+                let data = await getDataFromDb(snp);
+
                 snpPointsList.push(data);
                 i++;
             } catch (e) {
