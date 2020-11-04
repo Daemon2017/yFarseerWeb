@@ -139,6 +139,8 @@ let threshold = 5;
 let firstRun = true;
 
 function createMap() {
+    firebase.analytics().logEvent('MapCreationStarted');
+
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
 
@@ -173,7 +175,13 @@ function createMap() {
 }
 
 function setIntensity(thresholdValue) {
+    firebase.analytics().logEvent('IntensitySettingStarted');
+
     threshold = thresholdValue === undefined ? threshold : 10 - thresholdValue;
+
+    firebase.analytics().logEvent('IntensitySetted', {
+        "thresholdValue": thresholdValue
+    });
 
     map.eachLayer(function (oldLayer) {
         if (oldLayer !== baseLayer) {
@@ -213,6 +221,8 @@ function setIntensity(thresholdValue) {
 }
 
 function clearAll() {
+    firebase.analytics().logEvent('ClearingStarted');
+
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
@@ -289,8 +299,14 @@ async function drawLayers(snpList, thresholdValue) {
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
                 i++;
+                firebase.analytics().logEvent('SnpReceived', {
+                    "SnpName": snp
+                });
             } catch (e) {
                 errorSnpList.push(snp);
+                firebase.analytics().logEvent('SnpNotReceived', {
+                    "SnpName": snp
+                });
             }
         }
 
@@ -317,14 +333,24 @@ function getLatLng() {
 }
 
 function setLatLng() {
+    firebase.analytics().logEvent('LatLngSettingStarted');
+
     try {
         let lat = Number(document.getElementById("latForm").value);
         let lng = Number(document.getElementById("lngForm").value);
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById("stateLabel").innerText = "OK.";
+        firebase.analytics().logEvent('LatLngSettingOk', {
+            "lat": lat,
+            "lng": lng
+        });
     } catch (e) {
         document.getElementById("stateLabel").innerText =
             "Error: Both Lat and Lng must be a number!";
+        firebase.analytics().logEvent('LatLngSettingError', {
+            "lat": lat,
+            "lng": lng
+        });
     }
 }
 
@@ -347,6 +373,8 @@ function printState(errorSnpList, snpList) {
 }
 
 async function getCorrelation() {
+    firebase.analytics().logEvent('CorrelationGettingStarted');
+
     let snpString = document.getElementById("searchForm").value;
     let snpList = getSnpList(snpString);
 
@@ -360,8 +388,14 @@ async function getCorrelation() {
 
                 snpPointsList.push(data);
                 i++;
+                firebase.analytics().logEvent('CorrelSnpReceived', {
+                    "SnpName": snp
+                });
             } catch (e) {
                 errorSnpList.push(snp);
+                firebase.analytics().logEvent('CorrelSnpNotReceived', {
+                    "SnpName": snp
+                });
             }
         }
 

@@ -17,8 +17,23 @@
     <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/plugins/leaflet-heatmap/leaflet-heatmap.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyAM4kHpzADIdI9c_Sejm8E7kfGbpVBoNN0",
+            authDomain: "ymapper.firebaseapp.com",
+            databaseURL: "https://ymapper.firebaseio.com",
+            projectId: "ymapper",
+            storageBucket: "ymapper.appspot.com",
+            messagingSenderId: "367836231739",
+            appId: "1:367836231739:web:128e44a5b8d074f4f7841e",
+            measurementId: "G-1318JTMX99"
+        };
+        firebase.initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
 </head>
 
 <body onload="createMap()">
@@ -69,21 +84,6 @@
         <div id="correlationMatrix"></div>
     </div>
     <div id="mapLayer"></div>
-
-    <script>
-        var firebaseConfig = {
-            apiKey: "AIzaSyAM4kHpzADIdI9c_Sejm8E7kfGbpVBoNN0",
-            authDomain: "ymapper.firebaseapp.com",
-            databaseURL: "https://ymapper.firebaseio.com",
-            projectId: "ymapper",
-            storageBucket: "ymapper.appspot.com",
-            messagingSenderId: "367836231739",
-            appId: "1:367836231739:web:128e44a5b8d074f4f7841e",
-            measurementId: "G-1318JTMX99"
-        };
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
-    </script>
 </body>
 
 </html>
