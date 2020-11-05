@@ -482,10 +482,34 @@ function getHtmlTable(myArray, successSnpList) {
             if (j === 0) {
                 result += `<td>${successSnpList[i]}</td>`;
             }
-            result += "<td>" + column + "</td>";
+            result += `<td class="${getCorrelationClass(column)}">` + column + "</td>";
         });
         result += "</tr>";
     });
     result += "</table>";
     return result;
+}
+
+function getCorrelationClass(correlationValue) {
+    if (correlationValue < -0.90) {
+        return "veryHighNeg";
+    } else if (correlationValue >= -0.90 && correlationValue < -0.70) {
+        return "highNeg";
+    } else if (correlationValue >= -0.70 && correlationValue < -0.50) {
+        return "modNeg";
+    } else if (correlationValue >= -0.50 && correlationValue < -0.30) {
+        return "lowNeg";
+    } else if (correlationValue >= -0.30 && correlationValue < 0) {
+        return "veryLowNeg";
+    } else if (correlationValue >= 0 && correlationValue <= 0.30) {
+        return "veryLowPos";
+    } else if (correlationValue > 0.30 && correlationValue <= 0.50) {
+        return "lowPos";
+    } else if (correlationValue > 0.50 && correlationValue <= 0.70) {
+        return "modPos";
+    } else if (correlationValue > 0.70 && correlationValue <= 0.90) {
+        return "highPos";
+    } else if (correlationValue > 0.90) {
+        return "veryHighPos";
+    }
 }
