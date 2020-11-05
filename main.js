@@ -144,6 +144,8 @@ function createMap() {
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
 
+    let snpString;
+
     if (firstRun === true) {
         let lat = urlParams.get("lat") == null ? 48.814170 : urlParams.get("lat");
         let lng = urlParams.get("lng") == null ? 23.169720 : urlParams.get("lng");
@@ -170,11 +172,14 @@ function createMap() {
 
         map.addEventListener("move", getLatLng());
         firstRun = false;
+
+        snpString = urlParams.get("snps");
     } else {
         clearAll();
+
+        snpString = document.getElementById("searchForm").value;
     }
 
-    let snpString = firstRun === true ? urlParams.get("snps") : document.getElementById("searchForm").value;
     let snpList = getSnpList(snpString, true);
     drawLayers(snpList, threshold);
 }
