@@ -154,7 +154,7 @@ function createMap() {
 
         let zoom = urlParams.get("zoom") == null ? 4 : urlParams.get("zoom");
 
-        threshold = urlParams.get("threshold") == null ? 5 : urlParams.get("threshold");
+        threshold = urlParams.get("threshold") == null ? 5 : 10 - urlParams.get("threshold");
         document.getElementById("maxCountSlider").value = threshold
 
         baseLayer = L.tileLayer(
