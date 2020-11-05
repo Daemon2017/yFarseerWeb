@@ -155,7 +155,7 @@ function createMap() {
         let zoom = urlParams.get("zoom") == null ? 4 : urlParams.get("zoom");
 
         threshold = urlParams.get("threshold") == null ? 5 : 10 - urlParams.get("threshold");
-        document.getElementById("maxCountSlider").value = threshold
+        document.getElementById("maxCountSlider").value = null ? 5 : urlParams.get("threshold")
 
         baseLayer = L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
