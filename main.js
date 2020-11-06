@@ -137,8 +137,9 @@ let map;
 let baseLayer;
 let threshold = 5;
 let firstRun = true;
+let dbSnpsList = [];
 
-function createMap() {
+async function createMap() {
     firebase.analytics().logEvent("MapCreationStarted");
 
     let queryString = window.location.search;
@@ -174,6 +175,44 @@ function createMap() {
         firstRun = false;
 
         snpString = urlParams.get("snps");
+
+        dbSnpsList = await getCollectionFromDb();
+
+        $(function () {
+            function split(val) {
+                return val.split(/,\s*/);
+            }
+
+            function extractLast(term) {
+                return split(term).pop();
+            }
+
+            $("#searchForm").on("keydown", function (event) {
+                if (event.keyCode === $.ui.keyCode.TAB &&
+                    $(this).autocomplete("instance").menu.active) {
+                    event.preventDefault();
+                }
+            }).autocomplete({
+                source: function (request, response) {
+                    if (extractLast(request.term).length >= 3) {
+                        let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
+                        let limitedSnpsList = filteredSnpsList.slice(0, 10);
+                        response(limitedSnpsList);
+                    }
+                },
+                focus: function () {
+                    return false;
+                },
+                select: function (event, ui) {
+                    var terms = split(this.value);
+                    terms.pop();
+                    terms.push(ui.item.value);
+                    terms.push("");
+                    this.value = terms.join(",");
+                    return false;
+                }
+            });
+        });
     } else {
         clearAll();
 
@@ -295,7 +334,7 @@ async function drawLayers(snpList, thresholdValue) {
         let i = 0;
         for (const snp of snpList) {
             try {
-                let data = await getDataFromDb(snp);
+                let data = await getDocFromDb(snp);
 
                 let gradient = {};
                 gradientKeys.forEach(function (key, j) {
@@ -339,11 +378,19 @@ async function drawLayers(snpList, thresholdValue) {
     }
 }
 
-async function getDataFromDb(snp) {
+async function getDocFromDb(snp) {
     let db = firebase.firestore();
-    let snpRef = db.collection("snps").doc(snp);
-    let snpDoc = await snpRef.get();
-    let data = JSON.parse(snpDoc.data().data);
+    let docRef = db.collection("snps").doc(snp);
+    let doc = await docRef.get();
+    let data = JSON.parse(doc.data().data);
+    return data;
+}
+
+async function getCollectionFromDb() {
+    let db = firebase.firestore();
+    let collectionRef = db.collection("snps");
+    let collection = await collectionRef.get();
+    let data = collection.docs.map(doc => doc.id);
     return data;
 }
 
@@ -409,7 +456,7 @@ async function getCorrelation() {
         let i = 0;
         for (const snp of snpList) {
             try {
-                let data = await getDataFromDb(snp);
+                let data = await getDocFromDb(snp);
 
                 snpPointsList.push(data);
                 i++;
