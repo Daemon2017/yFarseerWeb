@@ -289,7 +289,7 @@ function clearAll() {
 }
 
 function getSnpList(snpString, isForDraw) {
-    snpString = snpString.toUpperCase().replace(/ /g, "");
+    snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
     if (snpString === "") {
         let noSnpErrorText = "Error: No SNP was specified!";
         document.getElementById("stateLabel").innerText = noSnpErrorText;
@@ -471,30 +471,35 @@ async function getCorrelation() {
             }
         }
 
-        let allPossibleKeysList = [];
-        snpPointsList.forEach(function (snpPoints) {
-            snpPoints.forEach(function (point) {
-                allPossibleKeysList.push(`${point["lat"]};${point["lng"]}`);
-            });
-        });
-        allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
-        allPossibleKeysList = allPossibleKeysList.sort();
-
-        let countListList = [];
-        snpPointsList.forEach(function (snpPoints) {
-            let countList = new Array(allPossibleKeysList.length).fill(0);
-            snpPoints.forEach(function (point) {
-                countList[allPossibleKeysList.indexOf(`${point["lat"]};${point["lng"]}`)] = point["count"];
-            });
-            countListList.push(countList);
-        });
-
         let correlationMatrix = [];
         for (let a = 0; a < snpPointsList.length; a++) {
+            let aDict = {};
+            snpPointsList[a].forEach(function (point) {
+                aDict[`${point["lat"]};${point["lng"]}`] = point["count"];
+            });
+
             let correlationRow = [];
             for (let b = 0; b < snpPointsList.length; b++) {
+                let bDict = {};
+                snpPointsList[b].forEach(function (point) {
+                    bDict[`${point["lat"]};${point["lng"]}`] = point["count"];
+                });
+
+                let allPossibleKeysList = Object.keys(aDict).concat(Object.keys(bDict));
+                allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
+                allPossibleKeysList = allPossibleKeysList.sort();
+
+                let countListList = [];
+                new Array(aDict, bDict).forEach(function (dict) {
+                    let countList = new Array(allPossibleKeysList.length).fill(0);
+                    allPossibleKeysList.forEach(function (key, index) {
+                        countList[index] = dict[key] == undefined ? 0 : dict[key];
+                    });
+                    countListList.push(countList);
+                });
+
                 correlationRow.push(jStat
-                    .corrcoeff(countListList[a], countListList[b])
+                    .corrcoeff(countListList[0], countListList[1])
                     .toFixed(2)
                 );
             }
