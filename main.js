@@ -332,7 +332,7 @@ async function drawLayers(snpList, thresholdValue) {
     if (snpList !== undefined) {
         let errorSnpList = [];
         let i = 0;
-        for (const snp of snpList) {
+        snpList.forEach(async function (snp) {
             try {
                 let data = await getDocFromDb(snp);
 
@@ -372,7 +372,7 @@ async function drawLayers(snpList, thresholdValue) {
                     "SnpName": snp
                 });
             }
-        }
+        });
 
         printState(errorSnpList, snpList);
     }
