@@ -142,12 +142,12 @@ let dbSnpsList = [];
 async function createMap() {
     firebase.analytics().logEvent("MapCreationStarted");
 
-    let queryString = window.location.search;
-    let urlParams = new URLSearchParams(queryString);
-
     let snpString;
 
     if (firstRun === true) {
+        let queryString = window.location.search;
+        let urlParams = new URLSearchParams(queryString);
+
         let lat = urlParams.get("lat") == null ? 48.814170 : urlParams.get("lat");
         let lng = urlParams.get("lng") == null ? 23.169720 : urlParams.get("lng");
         document.getElementById("latForm").value = lat;
@@ -332,7 +332,7 @@ async function drawLayers(snpList, thresholdValue) {
     if (snpList !== undefined) {
         let errorSnpList = [];
         let i = 0;
-        snpList.forEach(async function (snp) {
+        for (const snp of snpList) {
             try {
                 let data = await getDocFromDb(snp);
 
@@ -372,7 +372,7 @@ async function drawLayers(snpList, thresholdValue) {
                     "SnpName": snp
                 });
             }
-        });
+        }
 
         printState(errorSnpList, snpList);
     }
