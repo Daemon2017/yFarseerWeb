@@ -478,18 +478,18 @@ async function getCorrelation() {
         }
 
         let correlationMatrix = [];
-        for (let a = 0; a < snpPointsList.length; a++) {
+        snpPointsList.forEach(function (snpPointsA, a) {
             let aDict = {};
             let aMax = getArrayMax(snpPointsList, a, "count");
-            snpPointsList[a].forEach(function (point) {
+            snpPointsA.forEach(function (point) {
                 aDict[`${point["lat"]};${point["lng"]}`] = point["count"] / aMax;
             });
 
             let correlationRow = [];
-            for (let b = 0; b < snpPointsList.length; b++) {
+            snpPointsList.forEach(function (snpPointsB, b) {
                 let bDict = {};
                 let bMax = getArrayMax(snpPointsList, b, "count");
-                snpPointsList[b].forEach(function (point) {
+                snpPointsB.forEach(function (point) {
                     bDict[`${point["lat"]};${point["lng"]}`] = point["count"] / bMax;
                 });
 
@@ -510,9 +510,9 @@ async function getCorrelation() {
                     .corrcoeff(countListList[0], countListList[1])
                     .toFixed(2)
                 );
-            }
+            });
             correlationMatrix.push(correlationRow);
-        }
+        })
 
         let successSnpList = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
