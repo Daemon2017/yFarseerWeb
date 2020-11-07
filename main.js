@@ -444,6 +444,12 @@ function printState(errorSnpList, snpList) {
     }
 }
 
+function getArrayMax(myArray, n, property) {
+    return Math.max.apply(Math, myArray[n].map(function (o) {
+        return o[property];
+    }));
+}
+
 async function getCorrelation() {
     firebase.analytics().logEvent("CorrelationGettingStarted");
 
@@ -474,15 +480,17 @@ async function getCorrelation() {
         let correlationMatrix = [];
         for (let a = 0; a < snpPointsList.length; a++) {
             let aDict = {};
+            let aMax = getArrayMax(snpPointsList, a, "count");
             snpPointsList[a].forEach(function (point) {
-                aDict[`${point["lat"]};${point["lng"]}`] = point["count"];
+                aDict[`${point["lat"]};${point["lng"]}`] = point["count"] / aMax;
             });
 
             let correlationRow = [];
             for (let b = 0; b < snpPointsList.length; b++) {
                 let bDict = {};
+                let bMax = getArrayMax(snpPointsList, b, "count");
                 snpPointsList[b].forEach(function (point) {
-                    bDict[`${point["lat"]};${point["lng"]}`] = point["count"];
+                    bDict[`${point["lat"]};${point["lng"]}`] = point["count"] / bMax;
                 });
 
                 let allPossibleKeysList = Object.keys(aDict).concat(Object.keys(bDict));
