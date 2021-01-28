@@ -137,6 +137,7 @@ let map;
 let baseLayer;
 let threshold = 5;
 let firstRun = true;
+let isExtended = false;
 let dbSnpsList = [];
 
 async function createMap() {
@@ -218,6 +219,11 @@ async function createMap() {
 
     let snpList = getSnpList(snpString, true);
     drawLayers(snpList, threshold);
+}
+
+async function setCheckboxState() {
+    isExtended = document.getElementById('extendedCheckbox').checked;
+    dbSnpsList = await getCollectionFromDb();
 }
 
 function setIntensity(thresholdValue) {
@@ -314,7 +320,6 @@ async function drawLayers(snpList, thresholdValue) {
         for (const snp of snpList) {
             try {
                 let data = await getDocFromDb(snp);
-
                 let gradient = {};
                 gradientKeys.forEach(function (_key, j) {
                     gradient[gradientKeys[j]] = gradientValues[i][j];
@@ -353,7 +358,7 @@ async function drawLayers(snpList, thresholdValue) {
 
 async function getDocFromDb(snp) {
     let db = firebase.firestore();
-    let docRef = db.collection("snps").doc(snp);
+    let docRef = isExtended ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
     let doc = await docRef.get();
     let data = JSON.parse(doc.data().data);
     return data;
@@ -361,7 +366,7 @@ async function getDocFromDb(snp) {
 
 async function getCollectionFromDb() {
     let db = firebase.firestore();
-    let collectionRef = db.collection("snps");
+    let collectionRef = isExtended ? db.collection("snps_extended") : db.collection("snps");
     let collection = await collectionRef.get();
     let data = collection.docs.map(doc => doc.id);
     return data;
@@ -424,7 +429,6 @@ async function getCorrelation() {
         for (const snp of snpList) {
             try {
                 let data = await getDocFromDb(snp);
-
                 snpPointsList.push(data);
                 i++;
             } catch (e) {

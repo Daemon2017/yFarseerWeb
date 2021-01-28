@@ -52,10 +52,15 @@
         <button type="submit" id="setLatLngButton" onclick="setLatLng()">
             Set
         </button>
+
         <br />
         <label for="searchForm" id="searchLabel">
             SNPs:
             <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
+        </label>
+        <label for="extendedCheckbox" id="checkboxLabel">
+            <input type="checkbox" id="extendedCheckbox" onclick="setCheckboxState()" />
+            Extended
         </label>
         <button type="submit" id="searchButton" onclick="createMap()">
             Draw
@@ -67,6 +72,7 @@
             Clear
         </button>
         <label id="stateLabel"> OK. </label>
+
         <br />
         <div class="box" id="cb0"></div>
         <div class="box" id="cb1"></div>

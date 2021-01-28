@@ -48,7 +48,8 @@ body * {
 #maxCountSlider,
 #correlButton,
 #clearButton,
-#correlTable {
+#correlTable,
+#extendedCheckbox {
     pointer-events: auto;
 }
 
