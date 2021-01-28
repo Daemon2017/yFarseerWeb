@@ -140,8 +140,6 @@ let firstRun = true;
 let dbSnpsList = [];
 
 async function createMap() {
-    firebase.analytics().logEvent("MapCreationStarted");
-
     let snpString;
 
     if (firstRun === true) {
@@ -203,7 +201,7 @@ async function createMap() {
                 focus: function () {
                     return false;
                 },
-                select: function (event, ui) {
+                select: function (_event, ui) {
                     var terms = split(this.value);
                     terms.pop();
                     terms.push(ui.item.value);
@@ -215,7 +213,6 @@ async function createMap() {
         });
     } else {
         clearAll();
-
         snpString = document.getElementById("searchForm").value;
     }
 
@@ -224,13 +221,7 @@ async function createMap() {
 }
 
 function setIntensity(thresholdValue) {
-    firebase.analytics().logEvent("IntensitySettingStarted");
-
     threshold = thresholdValue === undefined ? threshold : 10 - thresholdValue;
-
-    firebase.analytics().logEvent("IntensitySetted", {
-        "thresholdValue": thresholdValue
-    });
 
     map.eachLayer(function (oldLayer) {
         if (oldLayer !== baseLayer) {
@@ -270,8 +261,6 @@ function setIntensity(thresholdValue) {
 }
 
 function clearAll() {
-    firebase.analytics().logEvent("ClearingStarted");
-
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
@@ -291,10 +280,9 @@ function clearAll() {
 function getSnpList(snpString, isForDraw) {
     snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
     if (snpString === "") {
-        let noSnpErrorText = "Error: No SNP was specified!";
-        document.getElementById("stateLabel").innerText = noSnpErrorText;
-        firebase.analytics().logEvent("NoSnpSpecified");
-        throw noSnpErrorText;
+      let noSnpErrorText = "Error: No SNP was specified!";
+      document.getElementById("stateLabel").innerText = noSnpErrorText;
+      throw noSnpErrorText;
     }
 
     let snpList = snpString.split(",");
@@ -306,22 +294,13 @@ function getSnpList(snpString, isForDraw) {
     let maxLength;
     if (isForDraw) {
         maxLength = 10;
-        firebase.analytics().logEvent("SnpNumberSpecifiedDraw", {
-            "SnpNumber": snpList.length
-        });
     } else {
         maxLength = 25;
-        firebase.analytics().logEvent("SnpNumberSpecifiedCorrelation", {
-            "SnpNumber": snpList.length
-        });
     }
 
     if (!(snpList.length > 0 && snpList.length <= maxLength)) {
         let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
         document.getElementById("stateLabel").innerText = wrongSnpLengthErrorText;
-        firebase.analytics().logEvent("WrongSnpNumberSpecified", {
-            "SnpNumber": snpList.length
-        });
         throw wrongSnpLengthErrorText;
     }
 
@@ -337,7 +316,7 @@ async function drawLayers(snpList, thresholdValue) {
                 let data = await getDocFromDb(snp);
 
                 let gradient = {};
-                gradientKeys.forEach(function (key, j) {
+                gradientKeys.forEach(function (_key, j) {
                     gradient[gradientKeys[j]] = gradientValues[i][j];
                 });
 
@@ -363,14 +342,8 @@ async function drawLayers(snpList, thresholdValue) {
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
                 i++;
-                firebase.analytics().logEvent("SnpReceived", {
-                    "SnpName": snp
-                });
             } catch (e) {
                 errorSnpList.push(snp);
-                firebase.analytics().logEvent("SnpNotReceived", {
-                    "SnpName": snp
-                });
             }
         }
 
@@ -405,24 +378,14 @@ function getLatLng() {
 }
 
 function setLatLng() {
-    firebase.analytics().logEvent("LatLngSettingStarted");
-
     try {
         let lat = Number(document.getElementById("latForm").value);
         let lng = Number(document.getElementById("lngForm").value);
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById("stateLabel").innerText = "OK.";
-        firebase.analytics().logEvent("LatLngSettingOk", {
-            "lat": lat,
-            "lng": lng
-        });
     } catch (e) {
         document.getElementById("stateLabel").innerText =
             "Error: Both Lat and Lng must be a number!";
-        firebase.analytics().logEvent("LatLngSettingError", {
-            "lat": lat,
-            "lng": lng
-        });
     }
 }
 
@@ -451,8 +414,6 @@ function getArrayMax(myArray, n, property) {
 }
 
 async function getCorrelation() {
-    firebase.analytics().logEvent("CorrelationGettingStarted");
-
     let snpString = document.getElementById("searchForm").value;
     let snpList = getSnpList(snpString, false);
 
@@ -466,14 +427,8 @@ async function getCorrelation() {
 
                 snpPointsList.push(data);
                 i++;
-                firebase.analytics().logEvent("CorrelSnpReceived", {
-                    "SnpName": snp
-                });
             } catch (e) {
                 errorSnpList.push(snp);
-                firebase.analytics().logEvent("CorrelSnpNotReceived", {
-                    "SnpName": snp
-                });
             }
         }
 
@@ -532,7 +487,7 @@ function getHtmlTable(myArray, successSnpList) {
         result += "<tr>";
         if (i === 0) {
             result += "<th>" + "</th>";
-            row.forEach(function (column, j) {
+            row.forEach(function (_column, j) {
                 result += `<th>${successSnpList[j]}</th>`;
             });
             result += "</tr>";
