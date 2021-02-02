@@ -286,9 +286,9 @@ function clearAll() {
 function getSnpList(snpString, isForDraw) {
     snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
     if (snpString === "") {
-      let noSnpErrorText = "Error: No SNP was specified!";
-      document.getElementById("stateLabel").innerText = noSnpErrorText;
-      throw noSnpErrorText;
+        let noSnpErrorText = "Error: No SNP was specified!";
+        document.getElementById("stateLabel").innerText = noSnpErrorText;
+        throw noSnpErrorText;
     }
 
     let snpList = snpString.split(",");

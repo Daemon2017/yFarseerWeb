@@ -59,19 +59,14 @@
             <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
         </label>
         <label for="extendedCheckbox" id="checkboxLabel">
-            <input type="checkbox" id="extendedCheckbox" onclick="setCheckboxState()" />
-            Extended
+            Extended:
+            <input type="checkbox" name="toggle" id="extendedCheckbox" class="toggle-button" onclick="setCheckboxState()" />       
         </label>
-        <button type="submit" id="searchButton" onclick="createMap()">
-            Draw
-        </button>
-        <button type="submit" id="correlButton" onclick="getCorrelation()">
-            Correl
-        </button>
-        <button type="submit" id="clearButton" onclick="clearAll()">
-            Clear
-        </button>
-        <label id="stateLabel"> OK. </label>
+        <label for="maxCountSlider" id="maxCountLabel">
+            Intensity:
+            <input type="range" id="maxCountSlider" oninput="setIntensity(this.value)" min="0" max="10" value="5"
+                class="slider" />
+        </label>
 
         <br />
         <div class="box" id="cb0"></div>
@@ -84,11 +79,17 @@
         <div class="box" id="cb7"></div>
         <div class="box" id="cb8"></div>
         <div class="box" id="cb9"></div>
-        <label for="maxCountSlider" id="maxCountLabel">
-            Intensity:
-            <input type="range" id="maxCountSlider" oninput="setIntensity(this.value)" min="0" max="10" value="5"
-                class="slider" />
-        </label>
+        <button type="submit" id="searchButton" onclick="createMap()">
+            Draw
+        </button>
+        <button type="submit" id="correlButton" onclick="getCorrelation()">
+            Correl
+        </button>
+        <button type="submit" id="clearButton" onclick="clearAll()">
+            Clear
+        </button>
+        <label id="stateLabel"> OK. </label>
+
         <br />
         <div id="correlationMatrix"></div>
     </div>
