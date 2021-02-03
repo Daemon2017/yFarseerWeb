@@ -154,6 +154,11 @@ async function createMap() {
 
         let zoom = urlParams.get("zoom") == null ? 4 : urlParams.get("zoom");
 
+        isExtended = urlParams.get("isExtended") == "true";
+        if (isExtended === true) {
+            document.getElementById("extendedCheckbox").checked = true;
+        }
+
         threshold = urlParams.get("threshold") == null ? 5 : 10 - urlParams.get("threshold");
         document.getElementById("maxCountSlider").value = null ? 5 : urlParams.get("threshold")
 

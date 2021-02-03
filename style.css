@@ -109,7 +109,7 @@ body * {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.toggle-button {
+  .toggle-button {
     position: relative;
     
     width: 51px;
