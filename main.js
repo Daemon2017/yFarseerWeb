@@ -399,6 +399,18 @@ function setLatLng() {
     }
 }
 
+function getLink() {
+    let myUrl = new URL("https://daemon2017.github.io/yFarseerWeb/");
+    myUrl.searchParams.append("lat", map.getCenter().lat);
+    myUrl.searchParams.append("lng", map.getCenter().lng);
+    myUrl.searchParams.append("zoom", map.getZoom());
+    myUrl.searchParams.append("isExtended", isExtended);
+    myUrl.searchParams.append("threshold", threshold);
+    myUrl.searchParams.append("snps", document.getElementById("searchForm").value);
+
+    window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
+}
+
 function printState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById("stateLabel").innerText = "OK.";
