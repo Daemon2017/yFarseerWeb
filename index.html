@@ -65,9 +65,9 @@
             Extended:
             <input type="checkbox" name="toggle" id="extendedCheckbox" class="toggle-button" onclick="setCheckboxState()" />       
         </label>
-        <label for="maxCountSlider" id="maxCountLabel">
+        <label for="intensitySlider" id="intensityLabel">
             Intensity:
-            <input type="range" id="maxCountSlider" oninput="setIntensity(this.value)" min="0" max="10" value="5"
+            <input type="range" id="intensitySlider" oninput="changeIntensity(this.value)" min="0" max="10" value="5"
                 class="slider" />
         </label>
 

@@ -135,7 +135,6 @@ const gradientValues = [
 
 let map;
 let baseLayer;
-let threshold = 5;
 let firstRun = true;
 let isExtended = false;
 let dbSnpsList = [];
@@ -159,8 +158,7 @@ async function createMap() {
             document.getElementById("extendedCheckbox").checked = true;
         }
 
-        threshold = urlParams.get("threshold") == null ? 5 : 10 - urlParams.get("threshold");
-        document.getElementById("maxCountSlider").value = null ? 5 : urlParams.get("threshold")
+        document.getElementById("intensitySlider").value = urlParams.get("threshold") == null ? 5 : urlParams.get("threshold");
 
         baseLayer = L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -223,6 +221,7 @@ async function createMap() {
     }
 
     let snpList = getSnpList(snpString, true);
+    let threshold = 10 - document.getElementById("intensitySlider").value;
     drawLayers(snpList, threshold);
 }
 
@@ -231,8 +230,8 @@ async function setCheckboxState() {
     dbSnpsList = await getCollectionFromDb();
 }
 
-function setIntensity(thresholdValue) {
-    threshold = thresholdValue === undefined ? threshold : 10 - thresholdValue;
+function changeIntensity(intensity) {
+    let threshold = 10 - intensity;
 
     map.eachLayer(function (oldLayer) {
         if (oldLayer !== baseLayer) {
@@ -255,7 +254,7 @@ function setIntensity(thresholdValue) {
     });
 }
 
-function addNewLayer(gradient, thresholdValue, data) {
+function addNewLayer(gradient, threshold, data) {
     let heatmapCfg = {
         radius: 3,
         maxOpacity: 0.9,
@@ -270,7 +269,7 @@ function addNewLayer(gradient, thresholdValue, data) {
 
     let newLayer = new HeatmapOverlay(heatmapCfg);
     newLayer.setData({
-        max: thresholdValue,
+        max: threshold,
         data: data,
     });
     map.addLayer(newLayer);
@@ -323,7 +322,7 @@ function getSnpList(snpString, isForDraw) {
     return snpList;
 }
 
-async function drawLayers(snpList, thresholdValue) {
+async function drawLayers(snpList, threshold) {
     if (snpList !== undefined) {
         let errorSnpList = [];
         let i = 0;
@@ -335,7 +334,7 @@ async function drawLayers(snpList, thresholdValue) {
                     gradient[gradientKeys[j]] = gradientValues[i][j];
                 });
 
-                addNewLayer(gradient, thresholdValue, data);
+                addNewLayer(gradient, threshold, data);
 
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
@@ -393,7 +392,7 @@ function getLink() {
     myUrl.searchParams.append("lng", map.getCenter().lng);
     myUrl.searchParams.append("zoom", map.getZoom());
     myUrl.searchParams.append("isExtended", isExtended);
-    myUrl.searchParams.append("threshold", threshold);
+    myUrl.searchParams.append("threshold", document.getElementById("intensitySlider").value);
     myUrl.searchParams.append("snps", document.getElementById("searchForm").value);
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
