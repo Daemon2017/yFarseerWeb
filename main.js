@@ -293,33 +293,35 @@ function clearAll() {
 }
 
 function getSnpList(snpString, isForDraw) {
-    snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
-    if (snpString === "") {
-        let noSnpErrorText = "Error: No SNP was specified!";
-        document.getElementById("stateLabel").innerText = noSnpErrorText;
-        throw noSnpErrorText;
-    }
+    if (snpString !== null) {
+        snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
+        if (snpString === "") {
+            let noSnpErrorText = "Error: No SNP was specified!";
+            document.getElementById("stateLabel").innerText = noSnpErrorText;
+            throw noSnpErrorText;
+        }
 
-    let snpList = snpString.split(",");
-    snpList = snpList.filter(function (snp) {
-        return snp !== "";
-    });
-    document.getElementById("searchForm").value = snpList.join(",");
+        let snpList = snpString.split(",");
+        snpList = snpList.filter(function (snp) {
+            return snp !== "";
+        });
+        document.getElementById("searchForm").value = snpList.join(",");
 
-    let maxLength;
-    if (isForDraw) {
-        maxLength = 10;
-    } else {
-        maxLength = 25;
-    }
+        let maxLength;
+        if (isForDraw) {
+            maxLength = 10;
+        } else {
+            maxLength = 25;
+        }
 
-    if (!(snpList.length > 0 && snpList.length <= maxLength)) {
-        let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
-        document.getElementById("stateLabel").innerText = wrongSnpLengthErrorText;
-        throw wrongSnpLengthErrorText;
-    }
+        if (!(snpList.length > 0 && snpList.length <= maxLength)) {
+            let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
+            document.getElementById("stateLabel").innerText = wrongSnpLengthErrorText;
+            throw wrongSnpLengthErrorText;
+        }
 
-    return snpList;
+        return snpList;
+    } 
 }
 
 async function drawLayers(snpList, threshold) {
