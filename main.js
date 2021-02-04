@@ -248,27 +248,32 @@ function setIntensity(thresholdValue) {
 
             let gradient = oldLayer._heatmap._config.gradient;
 
-            let heatmapCfg = {
-                radius: 3,
-                maxOpacity: 0.9,
-                minOpacity: 0.1,
-                scaleRadius: true,
-                useLocalExtrema: false,
-                latField: "lat",
-                lngField: "lng",
-                valueField: "count",
-                gradient: gradient,
-            };
+            addNewLayer(gradient, threshold, data);
 
-            let newLayer = new HeatmapOverlay(heatmapCfg);
-            newLayer.setData({
-                max: threshold,
-                data: data,
-            });
             map.removeLayer(oldLayer);
-            map.addLayer(newLayer);
         }
     });
+}
+
+function addNewLayer(gradient, thresholdValue, data) {
+    let heatmapCfg = {
+        radius: 3,
+        maxOpacity: 0.9,
+        minOpacity: 0.1,
+        scaleRadius: true,
+        useLocalExtrema: false,
+        latField: "lat",
+        lngField: "lng",
+        valueField: "count",
+        gradient: gradient,
+    };
+
+    let newLayer = new HeatmapOverlay(heatmapCfg);
+    newLayer.setData({
+        max: thresholdValue,
+        data: data,
+    });
+    map.addLayer(newLayer);
 }
 
 function clearAll() {
@@ -330,24 +335,7 @@ async function drawLayers(snpList, thresholdValue) {
                     gradient[gradientKeys[j]] = gradientValues[i][j];
                 });
 
-                let heatmapCfg = {
-                    radius: 3,
-                    maxOpacity: 0.9,
-                    minOpacity: 0.1,
-                    scaleRadius: true,
-                    useLocalExtrema: false,
-                    latField: "lat",
-                    lngField: "lng",
-                    valueField: "count",
-                    gradient: gradient,
-                };
-
-                let heatmapLayer = new HeatmapOverlay(heatmapCfg);
-                heatmapLayer.setData({
-                    max: thresholdValue,
-                    data: data,
-                });
-                map.addLayer(heatmapLayer);
+                addNewLayer(gradient, thresholdValue, data);
 
                 document.getElementById(`cb${i}`).style =
                     `background-color:${gradientValues[i][9]}`;
