@@ -178,7 +178,7 @@ async function createMap() {
 
         snpString = urlParams.get("snps");
 
-        dbSnpsList = await getCollectionFromDb();
+        dbSnpsList = await getDocFromDb("list");
 
         $(function () {
             function split(val) {
@@ -226,8 +226,8 @@ async function createMap() {
 }
 
 async function setCheckboxState() {
-    isExtended = document.getElementById('extendedCheckbox').checked;
-    dbSnpsList = await getCollectionFromDb();
+    isExtended = document.getElementById("extendedCheckbox").checked;
+    dbSnpsList = await getDocFromDb("list");
 }
 
 function changeIntensity(intensity) {
@@ -321,7 +321,7 @@ function getSnpList(snpString, isForDraw) {
         }
 
         return snpList;
-    } 
+    }
 }
 
 async function drawLayers(snpList, threshold) {
@@ -355,14 +355,6 @@ async function getDocFromDb(snp) {
     let docRef = isExtended ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
     let doc = await docRef.get();
     let data = JSON.parse(doc.data().data);
-    return data;
-}
-
-async function getCollectionFromDb() {
-    let db = firebase.firestore();
-    let collectionRef = isExtended ? db.collection("snps_extended") : db.collection("snps");
-    let collection = await collectionRef.get();
-    let data = collection.docs.map(doc => doc.id);
     return data;
 }
 
