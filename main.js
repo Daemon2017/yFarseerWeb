@@ -492,15 +492,19 @@ function getHtmlTable(myArray, successSnpList) {
     let result =
         "<table id='correlTable'><caption>Correlation matrix:</caption>";
     myArray.forEach(function (row, i) {
-        result += "<tr>";
         if (i === 0) {
+            result += "<thead>";
+            result += "<tr>";
             result += "<th>" + "</th>";
             row.forEach(function (_column, j) {
                 result += `<th>${successSnpList[j]}</th>`;
             });
             result += "</tr>";
-            result += "<tr>";
+            result += "</thead>";
+
+            result += "<tbody>";
         }
+        result += "<tr>";
         row.forEach(function (column, j) {
             if (j === 0) {
                 result += `<td>${successSnpList[i]}</td>`;
@@ -509,6 +513,7 @@ function getHtmlTable(myArray, successSnpList) {
         });
         result += "</tr>";
     });
+    result += "</tbody>";
     result += "</table>";
     return result;
 }
