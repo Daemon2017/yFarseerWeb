@@ -33,6 +33,19 @@ body * {
     pointer-events: none;
 }
 
+#correlationMatrix {
+    position: fixed;
+    display: block;
+    margin-left: 0px;
+    margin-top: 75px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+th {
+    cursor: pointer;
+}
+
 #correlTable,
 #correlTable th,
 #correlTable tr,

@@ -450,29 +450,33 @@ async function getCorrelation() {
 
             let correlationRow = [];
             snpPointsList.forEach(function (snpPointsB, b) {
-                let bDict = {};
-                let bMax = getArrayMax(snpPointsList, b, "count");
-                snpPointsB.forEach(function (point) {
-                    bDict[`${point["lat"]};${point["lng"]}`] = point["count"] / bMax;
-                });
-
-                let allPossibleKeysList = Object.keys(aDict).concat(Object.keys(bDict));
-                allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
-                allPossibleKeysList = allPossibleKeysList.sort();
-
-                let countListList = [];
-                new Array(aDict, bDict).forEach(function (dict) {
-                    let countList = new Array(allPossibleKeysList.length).fill(0);
-                    allPossibleKeysList.forEach(function (key, index) {
-                        countList[index] = dict[key] == undefined ? 0 : dict[key];
+                if (a !== b) {
+                    let bDict = {};
+                    let bMax = getArrayMax(snpPointsList, b, "count");
+                    snpPointsB.forEach(function (point) {
+                        bDict[`${point["lat"]};${point["lng"]}`] = point["count"] / bMax;
                     });
-                    countListList.push(countList);
-                });
 
-                correlationRow.push(jStat
-                    .corrcoeff(countListList[0], countListList[1])
-                    .toFixed(2)
-                );
+                    let allPossibleKeysList = Object.keys(aDict).concat(Object.keys(bDict));
+                    allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
+                    allPossibleKeysList = allPossibleKeysList.sort();
+
+                    let countListList = [];
+                    new Array(aDict, bDict).forEach(function (dict) {
+                        let countList = new Array(allPossibleKeysList.length).fill(0);
+                        allPossibleKeysList.forEach(function (key, index) {
+                            countList[index] = dict[key] == undefined ? 0 : dict[key];
+                        });
+                        countListList.push(countList);
+                    });
+
+                    correlationRow.push(jStat
+                        .corrcoeff(countListList[0], countListList[1])
+                        .toFixed(2)
+                    );
+                } else {
+                    correlationRow.push("1.00");
+                }
             });
             correlationMatrix.push(correlationRow);
         })
@@ -495,9 +499,9 @@ function getHtmlTable(myArray, successSnpList) {
         if (i === 0) {
             result += "<thead>";
             result += "<tr>";
-            result += "<th onclick='sortTable(0)'>" + "</th>";
+            result += "<th onclick='sortTable(0)'>SNP</th>";
             row.forEach(function (_column, j) {
-                result += `<th onclick='sortTable(${j})'>${successSnpList[j]}</th>`;
+                result += `<th onclick='sortTable(${j+1})'>${successSnpList[j]}</th>`;
             });
             result += "</tr>";
             result += "</thead>";
@@ -555,12 +559,12 @@ function sortTable(n) {
             x = rows[i].getElementsByTagName("TD")[n];
             y = rows[i + 1].getElementsByTagName("TD")[n];
             if (dir == "asc") {
-                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                if ((isNaN(x.innerHTML) & isNaN(y.innerHTML) & x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) | Number(x.innerHTML) > Number(y.innerHTML)) {
                     shouldSwitch = true;
                     break;
                 }
             } else if (dir == "desc") {
-                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                if ((isNaN(x.innerHTML) & isNaN(y.innerHTML) & x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) | Number(x.innerHTML) < Number(y.innerHTML)) {
                     shouldSwitch = true;
                     break;
                 }
