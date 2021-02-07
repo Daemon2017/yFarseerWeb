@@ -1,4 +1,4 @@
-const gradientKeys = [
+const GRADIENT_KEYS = [
     ".10",
     ".20",
     ".30",
@@ -10,7 +10,7 @@ const gradientKeys = [
     ".90",
     "1.",
 ];
-const gradientValues = [
+const GRADIENT_VALUES = [
     [
         "#F9EBEA",
         "#F2D7D5",
@@ -140,6 +140,14 @@ const ISEXTENDED_URL_PARAM = "isExtended";
 const THRESHOLD_URL_PARAM = "threshold";
 const SNPS_URL_PARAM = "snps";
 
+const LAT_FORM_ELEMENT_ID = "latForm";
+const LNG_FORM_ELEMENT_ID = "lngForm";
+const EXTENDED_CHECKBOX_ELEMENT_ID = "extendedCheckbox";
+const INTENSITY_SLIDER_ELEMENT_ID = "intensitySlider";
+const SEARCH_FORM_ELEMENT_ID = "searchForm";
+const CORRELATION_MATRIX_ELEMENT_ID = "correlationMatrix";
+const STATE_LABEL_ELEMENT_ID = "stateLabel";
+
 let map;
 let baseLayer;
 let firstRun = true;
@@ -152,12 +160,12 @@ async function createMap() {
         let queryString = window.location.search;
         let urlParams = new URLSearchParams(queryString);
         let lat = urlParams.get(LAT_URL_PARAM) == null ? 48.814170 : urlParams.get(LAT_URL_PARAM);
-        document.getElementById("latForm").value = lat;
+        document.getElementById(LAT_FORM_ELEMENT_ID).value = lat;
         let lng = urlParams.get(LNG_URL_PARAM) == null ? 23.169720 : urlParams.get(LNG_URL_PARAM);
-        document.getElementById("lngForm").value = lng;
+        document.getElementById(LNG_FORM_ELEMENT_ID).value = lng;
         let zoom = urlParams.get(ZOOM_URL_PARAM) == null ? 4 : urlParams.get(ZOOM_URL_PARAM);
-        document.getElementById("extendedCheckbox").checked = urlParams.get(ISEXTENDED_URL_PARAM) == "true" ? true : false;
-        document.getElementById("intensitySlider").value = urlParams.get(THRESHOLD_URL_PARAM) == null ? 5 : urlParams.get(THRESHOLD_URL_PARAM);
+        document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked = urlParams.get(ISEXTENDED_URL_PARAM) == "true" ? true : false;
+        document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value = urlParams.get(THRESHOLD_URL_PARAM) == null ? 5 : urlParams.get(THRESHOLD_URL_PARAM);
         snpString = urlParams.get(SNPS_URL_PARAM);
 
         baseLayer = L.tileLayer(
@@ -174,7 +182,7 @@ async function createMap() {
         });
 
         map.addEventListener("move", getLatLng());
-        
+
         firstRun = false;
 
         dbSnpsList = await getDocFromDb("list");
@@ -216,11 +224,11 @@ async function createMap() {
         });
     } else {
         clearAll();
-        snpString = document.getElementById("searchForm").value;
+        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
     let snpList = getSnpList(snpString, true);
-    let threshold = 10 - document.getElementById("intensitySlider").value;
+    let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(snpList, threshold);
 }
 
@@ -279,7 +287,7 @@ function clearAll() {
             "background-color: transparent";
     }
 
-    document.getElementById("correlationMatrix").innerHTML = null;
+    document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
 
     map.eachLayer(function (layer) {
         if (layer !== baseLayer) {
@@ -287,7 +295,7 @@ function clearAll() {
         }
     });
 
-    document.getElementById("stateLabel").innerText = "OK.";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
 }
 
 function getSnpList(snpString, isForDraw) {
@@ -295,7 +303,7 @@ function getSnpList(snpString, isForDraw) {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
             let noSnpErrorText = "Error: No SNP was specified!";
-            document.getElementById("stateLabel").innerText = noSnpErrorText;
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpErrorText;
             throw noSnpErrorText;
         }
 
@@ -303,7 +311,7 @@ function getSnpList(snpString, isForDraw) {
         snpList = snpList.filter(function (snp) {
             return snp !== "";
         });
-        document.getElementById("searchForm").value = snpList.join(",");
+        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
 
         let maxLength;
         if (isForDraw) {
@@ -314,7 +322,7 @@ function getSnpList(snpString, isForDraw) {
 
         if (!(snpList.length > 0 && snpList.length <= maxLength)) {
             let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
-            document.getElementById("stateLabel").innerText = wrongSnpLengthErrorText;
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = wrongSnpLengthErrorText;
             throw wrongSnpLengthErrorText;
         }
 
@@ -330,14 +338,14 @@ async function drawLayers(snpList, threshold) {
             try {
                 let data = await getDocFromDb(snp);
                 let gradient = {};
-                gradientKeys.forEach(function (_key, j) {
-                    gradient[gradientKeys[j]] = gradientValues[i][j];
+                GRADIENT_KEYS.forEach(function (_key, j) {
+                    gradient[GRADIENT_KEYS[j]] = GRADIENT_VALUES[i][j];
                 });
 
                 addNewLayer(gradient, threshold, data);
 
                 document.getElementById(`cb${i}`).style =
-                    `background-color:${gradientValues[i][9]}`;
+                    `background-color:${GRADIENT_VALUES[i][9]}`;
                 i++;
             } catch (e) {
                 errorSnpList.push(snp);
@@ -350,7 +358,7 @@ async function drawLayers(snpList, threshold) {
 
 async function getDocFromDb(snp) {
     let db = firebase.firestore();
-    let docRef = document.getElementById("extendedCheckbox").checked ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
+    let docRef = document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
     let doc = await docRef.get();
     let data = JSON.parse(doc.data().data);
     return data;
@@ -361,19 +369,19 @@ function getLatLng() {
         let center = map.getCenter();
         let lat = center.lat;
         let lng = center.lng;
-        document.getElementById("latForm").value = lat;
-        document.getElementById("lngForm").value = lng;
+        document.getElementById(LAT_FORM_ELEMENT_ID).value = lat;
+        document.getElementById(LNG_FORM_ELEMENT_ID).value = lng;
     };
 }
 
 function setLatLng() {
     try {
-        let lat = Number(document.getElementById("latForm").value);
-        let lng = Number(document.getElementById("lngForm").value);
+        let lat = Number(document.getElementById(LAT_FORM_ELEMENT_ID).value);
+        let lng = Number(document.getElementById(LNG_FORM_ELEMENT_ID).value);
         map.panTo(new L.LatLng(lat, lng));
-        document.getElementById("stateLabel").innerText = "OK.";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
     } catch (e) {
-        document.getElementById("stateLabel").innerText =
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             "Error: Both Lat and Lng must be a number!";
     }
 }
@@ -383,27 +391,27 @@ function getLink() {
     myUrl.searchParams.append(LAT_URL_PARAM, map.getCenter().lat);
     myUrl.searchParams.append(LNG_URL_PARAM, map.getCenter().lng);
     myUrl.searchParams.append(ZOOM_URL_PARAM, map.getZoom());
-    myUrl.searchParams.append(ISEXTENDED_URL_PARAM, document.getElementById("extendedCheckbox").checked);
-    myUrl.searchParams.append(THRESHOLD_URL_PARAM, document.getElementById("intensitySlider").value);
-    myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById("searchForm").value);
+    myUrl.searchParams.append(ISEXTENDED_URL_PARAM, document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked);
+    myUrl.searchParams.append(THRESHOLD_URL_PARAM, document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
+    myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value);
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
 }
 
 function printState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
-        document.getElementById("stateLabel").innerText = "OK.";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
     } else if (snpList.length - errorSnpList.length === 0) {
-        document.getElementById("searchForm").value = snpList.filter(function (snp) {
+        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
         }).join(",");
-        document.getElementById("stateLabel").innerText =
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             `Error: Data of all SNPs wasn't received!`;
     } else {
-        document.getElementById("searchForm").value = snpList.filter(function (snp) {
+        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
         }).join(",");
-        document.getElementById("stateLabel").innerText =
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
     }
 }
@@ -415,7 +423,7 @@ function getArrayMax(myArray, n, property) {
 }
 
 async function getCorrelation() {
-    let snpString = document.getElementById("searchForm").value;
+    let snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     let snpList = getSnpList(snpString, false);
 
     let snpPointsList = [];
@@ -473,7 +481,7 @@ async function getCorrelation() {
             return !errorSnpList.includes(snp);
         });
         if (successSnpList.length > 0) {
-            document.getElementById("correlationMatrix").innerHTML = getHtmlTable(correlationMatrix, successSnpList);
+            document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = getHtmlTable(correlationMatrix, successSnpList);
         }
 
         printState(errorSnpList, snpList);
