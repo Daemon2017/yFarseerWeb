@@ -133,6 +133,13 @@ const gradientValues = [
     ],
 ];
 
+const LAT_URL_PARAM = "lat";
+const LNG_URL_PARAM = "lng";
+const ZOOM_URL_PARAM = "zoom";
+const ISEXTENDED_URL_PARAM = "isExtended";
+const THRESHOLD_URL_PARAM = "threshold";
+const SNPS_URL_PARAM = "snps";
+
 let map;
 let baseLayer;
 let firstRun = true;
@@ -144,19 +151,14 @@ async function createMap() {
     if (firstRun === true) {
         let queryString = window.location.search;
         let urlParams = new URLSearchParams(queryString);
-
-        let lat = urlParams.get("lat") == null ? 48.814170 : urlParams.get("lat");
-        let lng = urlParams.get("lng") == null ? 23.169720 : urlParams.get("lng");
+        let lat = urlParams.get(LAT_URL_PARAM) == null ? 48.814170 : urlParams.get(LAT_URL_PARAM);
         document.getElementById("latForm").value = lat;
+        let lng = urlParams.get(LNG_URL_PARAM) == null ? 23.169720 : urlParams.get(LNG_URL_PARAM);
         document.getElementById("lngForm").value = lng;
-
-        let zoom = urlParams.get("zoom") == null ? 4 : urlParams.get("zoom");
-
-        if (isExtended = urlParams.get("isExtended") == "true") {
-            document.getElementById("extendedCheckbox").checked = true;
-        }
-
-        document.getElementById("intensitySlider").value = urlParams.get("threshold") == null ? 5 : urlParams.get("threshold");
+        let zoom = urlParams.get(ZOOM_URL_PARAM) == null ? 4 : urlParams.get(ZOOM_URL_PARAM);
+        document.getElementById("extendedCheckbox").checked = urlParams.get(ISEXTENDED_URL_PARAM) == "true" ? true : false;
+        document.getElementById("intensitySlider").value = urlParams.get(THRESHOLD_URL_PARAM) == null ? 5 : urlParams.get(THRESHOLD_URL_PARAM);
+        snpString = urlParams.get(SNPS_URL_PARAM);
 
         baseLayer = L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -172,9 +174,8 @@ async function createMap() {
         });
 
         map.addEventListener("move", getLatLng());
+        
         firstRun = false;
-
-        snpString = urlParams.get("snps");
 
         dbSnpsList = await getDocFromDb("list");
 
@@ -379,12 +380,12 @@ function setLatLng() {
 
 function getLink() {
     let myUrl = new URL("https://daemon2017.github.io/yFarseerWeb/");
-    myUrl.searchParams.append("lat", map.getCenter().lat);
-    myUrl.searchParams.append("lng", map.getCenter().lng);
-    myUrl.searchParams.append("zoom", map.getZoom());
-    myUrl.searchParams.append("isExtended", document.getElementById("extendedCheckbox").checked);
-    myUrl.searchParams.append("threshold", document.getElementById("intensitySlider").value);
-    myUrl.searchParams.append("snps", document.getElementById("searchForm").value);
+    myUrl.searchParams.append(LAT_URL_PARAM, map.getCenter().lat);
+    myUrl.searchParams.append(LNG_URL_PARAM, map.getCenter().lng);
+    myUrl.searchParams.append(ZOOM_URL_PARAM, map.getZoom());
+    myUrl.searchParams.append(ISEXTENDED_URL_PARAM, document.getElementById("extendedCheckbox").checked);
+    myUrl.searchParams.append(THRESHOLD_URL_PARAM, document.getElementById("intensitySlider").value);
+    myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById("searchForm").value);
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
 }
