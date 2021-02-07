@@ -393,7 +393,7 @@ function getLink() {
     myUrl.searchParams.append(ZOOM_URL_PARAM, map.getZoom());
     myUrl.searchParams.append(ISEXTENDED_URL_PARAM, document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked);
     myUrl.searchParams.append(THRESHOLD_URL_PARAM, document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
-    myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value);
+    myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value.replace(/ /g, ""));
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
 }
