@@ -136,7 +136,6 @@ const gradientValues = [
 let map;
 let baseLayer;
 let firstRun = true;
-let isExtended = false;
 let dbSnpsList = [];
 
 async function createMap() {
@@ -153,8 +152,7 @@ async function createMap() {
 
         let zoom = urlParams.get("zoom") == null ? 4 : urlParams.get("zoom");
 
-        isExtended = urlParams.get("isExtended") == "true";
-        if (isExtended === true) {
+        if (isExtended = urlParams.get("isExtended") == "true") {
             document.getElementById("extendedCheckbox").checked = true;
         }
 
@@ -226,7 +224,6 @@ async function createMap() {
 }
 
 async function setCheckboxState() {
-    isExtended = document.getElementById("extendedCheckbox").checked;
     dbSnpsList = await getDocFromDb("list");
 }
 
@@ -352,7 +349,7 @@ async function drawLayers(snpList, threshold) {
 
 async function getDocFromDb(snp) {
     let db = firebase.firestore();
-    let docRef = isExtended ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
+    let docRef = document.getElementById("extendedCheckbox").checked ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
     let doc = await docRef.get();
     let data = JSON.parse(doc.data().data);
     return data;
@@ -385,7 +382,7 @@ function getLink() {
     myUrl.searchParams.append("lat", map.getCenter().lat);
     myUrl.searchParams.append("lng", map.getCenter().lng);
     myUrl.searchParams.append("zoom", map.getZoom());
-    myUrl.searchParams.append("isExtended", isExtended);
+    myUrl.searchParams.append("isExtended", document.getElementById("extendedCheckbox").checked);
     myUrl.searchParams.append("threshold", document.getElementById("intensitySlider").value);
     myUrl.searchParams.append("snps", document.getElementById("searchForm").value);
 
