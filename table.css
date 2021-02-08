@@ -9,10 +9,18 @@
 
 #correlTable {
     pointer-events: auto;
+    table-layout: fixed;
+    width: 100%;
 }
 
 th {
     cursor: pointer;
+}
+
+td,
+th {
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 #correlTable,
