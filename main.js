@@ -470,10 +470,14 @@ async function getCorrelation() {
                         countListList.push(countList);
                     });
 
-                    correlationRow.push(jStat
-                        .corrcoeff(countListList[0], countListList[1])
-                        .toFixed(2)
-                    );
+                    if (arraysEqual(countListList[0], countListList[1])) {
+                        correlationRow.push("1.00");
+                    } else {
+                        correlationRow.push(jStat
+                            .corrcoeff(countListList[0], countListList[1])
+                            .toFixed(2)
+                        );
+                    }
                 } else {
                     correlationRow.push("1.00");
                 }
@@ -490,6 +494,24 @@ async function getCorrelation() {
 
         printState(errorSnpList, snpList);
     }
+}
+
+function arraysEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (a == null || b == null) {
+        return false;
+    }
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function getHtmlTable(myArray, successSnpList) {
