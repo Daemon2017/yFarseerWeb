@@ -1,0 +1,63 @@
+#correlationMatrix {
+    position: fixed;
+    display: block;
+    margin-left: 0px;
+    margin-top: 75px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+#correlTable {
+    pointer-events: auto;
+}
+
+th {
+    cursor: pointer;
+}
+
+#correlTable,
+#correlTable th,
+#correlTable tr,
+#correlTable td {
+    border: 1px solid black;
+}
+
+.veryHighNeg {
+    background-color: #00BFFF7F;
+}
+
+.highNeg {
+    background-color: #0040FF7F;
+}
+
+.modNeg {
+    background-color: #4000FF7F;
+}
+
+.lowNeg {
+    background-color: #BF00FF7F;
+}
+
+.veryLowNeg {
+    background-color: #FF00BF7F;
+}
+
+.veryLowPos {
+    background-color: #FF00007F;
+}
+
+.lowPos {
+    background-color: #FF80007F;
+}
+
+.modPos {
+    background-color: #FFFF007F;
+}
+
+.highPos {
+    background-color: #80FF007F;
+}
+
+.veryHighPos {
+    background-color: #00FF007F;
+}

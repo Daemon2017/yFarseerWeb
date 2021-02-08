@@ -4,7 +4,9 @@
 <head>
     <meta charset="utf-8" />
     <title>yMapperWeb</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" type="text/css" href="map.css" />
+    <link rel="stylesheet" type="text/css" href="controls.css" />
+    <link rel="stylesheet" type="text/css" href="table.css" />
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@latest/dist/leaflet.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <style>
@@ -42,7 +44,7 @@
 </head>
 
 <body onload="createMap()">
-    <div id="searchLayer">
+    <div id="controlsLayer">
         <label for="latForm" id="latLabel">
             Lat:
             <input type="search" id="latForm" placeholder="25.6586" />
