@@ -1,5 +1,5 @@
 #controlsLayer {
-    position: fixed;
+    position: absolute;
     display: block;
     margin-left: 50px;
     margin-top: 10px;

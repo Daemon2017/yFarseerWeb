@@ -317,7 +317,7 @@ function getSnpList(snpString, isForDraw) {
         if (isForDraw) {
             maxLength = 10;
         } else {
-            maxLength = 25;
+            maxLength = 50;
         }
 
         if (!(snpList.length > 0 && snpList.length <= maxLength)) {

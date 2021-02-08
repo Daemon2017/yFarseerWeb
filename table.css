@@ -1,16 +1,18 @@
 #correlationMatrix {
-    position: fixed;
+    position: absolute;
     display: block;
     margin-left: 0px;
     margin-top: 75px;
     z-index: 2;
-    pointer-events: none;
+    pointer-events: auto;
+    width: 100%;
+    background-color: white;
 }
 
 #correlTable {
     pointer-events: auto;
-    table-layout: fixed;
-    width: 100%;
+    display: block;
+    overflow: auto;
 }
 
 th {
@@ -20,7 +22,6 @@ th {
 td,
 th {
     white-space: nowrap;
-    overflow: hidden;
 }
 
 #correlTable,
