@@ -5,14 +5,14 @@
     margin-top: 75px;
     z-index: 2;
     pointer-events: auto;
-    width: 100%;
-    background-color: white;
+    max-width: 100%;
 }
 
 #correlTable {
     pointer-events: auto;
     display: block;
     overflow: auto;
+    background-color: white;
 }
 
 th {
@@ -28,7 +28,7 @@ th {
 #correlTable th,
 #correlTable tr,
 #correlTable td {
-    border: 1px solid black;
+    border: 0.5px solid black;
 }
 
 .veryHighNeg {
