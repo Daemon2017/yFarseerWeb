@@ -24,6 +24,14 @@ th {
     white-space: nowrap;
 }
 
+th.sorted.ascending:after {
+    content: "  \2191";
+}
+ 
+th.sorted.descending:after {
+    content: " \2193";
+}
+
 #correlTable,
 #correlTable th,
 #correlTable tr,

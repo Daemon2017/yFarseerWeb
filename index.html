@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <link rel="shortcut icon" type="image/png" href="favicon.ico"/>
+    <link rel="shortcut icon" type="image/png" href="favicon.ico" />
     <title>yMapperWeb</title>
     <link rel="stylesheet" type="text/css" href="map.css" />
     <link rel="stylesheet" type="text/css" href="controls.css" />
@@ -15,7 +15,7 @@
             position: absolute !important;
         }
     </style>
-    
+
     <script src="main.js"></script>
     <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heatmap.js@latest/build/heatmap.js"></script>
@@ -27,6 +27,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script>
     <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-tablesort@0.0.11/jquery.tablesort.js"></script>
     <script>
         var firebaseConfig = {
             apiKey: "AIzaSyAM4kHpzADIdI9c_Sejm8E7kfGbpVBoNN0",
@@ -68,7 +69,7 @@
         </label>
         <label for="extendedCheckbox" id="checkboxLabel">
             Extended:
-            <input type="checkbox" id="extendedCheckbox" class="toggle-button" onclick="setCheckboxState()" />       
+            <input type="checkbox" id="extendedCheckbox" class="toggle-button" onclick="setCheckboxState()" />
         </label>
         <label for="intensitySlider" id="intensityLabel">
             Intensity:

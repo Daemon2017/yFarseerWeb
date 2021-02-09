@@ -498,6 +498,15 @@ async function getCorrelation() {
         });
         if (successSnpList.length > 0) {
             document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = getHtmlTable(correlationMatrix, successSnpList);
+            $(function () {
+                $('table').tablesort()
+                $('thead th.amount').data(
+                    'sortBy',
+                    function (th, td, tablesort) {
+                        return parseFloat(td.text());
+                    }
+                );
+            });
         }
 
         printState(errorSnpList, snpList);
@@ -529,9 +538,9 @@ function getHtmlTable(myArray, successSnpList) {
         if (i === 0) {
             result += "<thead>";
             result += "<tr>";
-            result += "<th onclick='sortTable(0)'>SNP</th>";
+            result += "<th>SNP</th>";
             row.forEach(function (_column, j) {
-                result += `<th onclick='sortTable(${j+1})'>${successSnpList[j]}</th>`;
+                result += `<th class="amount">${successSnpList[j]}</th>`;
             });
             result += "</tr>";
             result += "</thead>";
@@ -573,42 +582,5 @@ function getCorrelationClass(correlationValue) {
         return "highPos";
     } else if (correlationValue > 0.90) {
         return "veryHighPos";
-    }
-}
-
-function sortTable(n) {
-    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-    table = document.getElementById("correlTable");
-    switching = true;
-    dir = "asc";
-    while (switching) {
-        switching = false;
-        rows = table.rows;
-        for (i = 1; i < (rows.length - 1); i++) {
-            shouldSwitch = false;
-            x = rows[i].getElementsByTagName("TD")[n];
-            y = rows[i + 1].getElementsByTagName("TD")[n];
-            if (dir == "asc") {
-                if ((isNaN(x.innerHTML) & isNaN(y.innerHTML) & x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) | Number(x.innerHTML) > Number(y.innerHTML)) {
-                    shouldSwitch = true;
-                    break;
-                }
-            } else if (dir == "desc") {
-                if ((isNaN(x.innerHTML) & isNaN(y.innerHTML) & x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) | Number(x.innerHTML) < Number(y.innerHTML)) {
-                    shouldSwitch = true;
-                    break;
-                }
-            }
-        }
-        if (shouldSwitch) {
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            switching = true;
-            switchcount++;
-        } else {
-            if (switchcount == 0 && dir == "asc") {
-                dir = "desc";
-                switching = true;
-            }
-        }
     }
 }
