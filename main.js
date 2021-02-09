@@ -148,13 +148,16 @@ const SEARCH_FORM_ELEMENT_ID = "searchForm";
 const CORRELATION_MATRIX_ELEMENT_ID = "correlationMatrix";
 const STATE_LABEL_ELEMENT_ID = "stateLabel";
 
+const BUSY_STATE_TEXT = "Busy...";
+const OK_STATE_TEXT = "OK.";
+
 let map;
 let baseLayer;
 let firstRun = true;
 let dbSnpsList = [];
 
 async function createMap() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     let snpString;
 
     if (firstRun === true) {
@@ -223,7 +226,7 @@ async function createMap() {
                 }
             });
         });
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } else {
         clearAll();
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
@@ -235,9 +238,9 @@ async function createMap() {
 }
 
 async function setCheckboxState() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     dbSnpsList = await getDocFromDb("list");
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
 function changeIntensity(intensity) {
@@ -286,7 +289,7 @@ function addNewLayer(gradient, threshold, data) {
 }
 
 function clearAll() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
@@ -299,7 +302,7 @@ function clearAll() {
             map.removeLayer(layer);
         }
     });
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
 function getSnpList(snpString, isForDraw) {
@@ -379,12 +382,12 @@ function getLatLng() {
 }
 
 function setLatLng() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     try {
         let lat = Number(document.getElementById(LAT_FORM_ELEMENT_ID).value);
         let lng = Number(document.getElementById(LNG_FORM_ELEMENT_ID).value);
         map.panTo(new L.LatLng(lat, lng));
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } catch (e) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             "Error: Both Lat and Lng must be a number!";
@@ -392,7 +395,7 @@ function setLatLng() {
 }
 
 function getLink() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     let myUrl = new URL("https://daemon2017.github.io/yFarseerWeb/");
     myUrl.searchParams.append(LAT_URL_PARAM, map.getCenter().lat);
     myUrl.searchParams.append(LNG_URL_PARAM, map.getCenter().lng);
@@ -402,12 +405,12 @@ function getLink() {
     myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value.replace(/ /g, ""));
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
 function printState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } else if (snpList.length - errorSnpList.length === 0) {
         document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
@@ -430,7 +433,7 @@ function getArrayMax(myArray, n, property) {
 }
 
 async function getCorrelation() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     let snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     let snpList = getSnpList(snpString, false);
 
@@ -498,14 +501,9 @@ async function getCorrelation() {
         });
         if (successSnpList.length > 0) {
             document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = getHtmlTable(correlationMatrix, successSnpList);
-            $(function () {
-                $('table').tablesort()
-                $('thead th.amount').data(
-                    'sortBy',
-                    function (th, td, tablesort) {
-                        return parseFloat(td.text());
-                    }
-                );
+            $('table').tablesort();
+            $('thead th.amount').data('sortBy', function (_th, td, _tablesort) {
+                return parseFloat(td.text());
             });
         }
 
@@ -533,7 +531,7 @@ function arraysEqual(a, b) {
 
 function getHtmlTable(myArray, successSnpList) {
     let result =
-        "<table id='correlTable'><caption>Correlation matrix:</caption>";
+        "<table id='correlTable'><caption>Correlation matrix (sortable!):</caption>";
     myArray.forEach(function (row, i) {
         if (i === 0) {
             result += "<thead>";
