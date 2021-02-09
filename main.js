@@ -154,6 +154,7 @@ let firstRun = true;
 let dbSnpsList = [];
 
 async function createMap() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     let snpString;
 
     if (firstRun === true) {
@@ -222,6 +223,7 @@ async function createMap() {
                 }
             });
         });
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
     } else {
         clearAll();
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
@@ -233,7 +235,9 @@ async function createMap() {
 }
 
 async function setCheckboxState() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     dbSnpsList = await getDocFromDb("list");
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
 }
 
 function changeIntensity(intensity) {
@@ -282,6 +286,7 @@ function addNewLayer(gradient, threshold, data) {
 }
 
 function clearAll() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style =
             "background-color: transparent";
@@ -294,7 +299,6 @@ function clearAll() {
             map.removeLayer(layer);
         }
     });
-
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
 }
 
@@ -375,6 +379,7 @@ function getLatLng() {
 }
 
 function setLatLng() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     try {
         let lat = Number(document.getElementById(LAT_FORM_ELEMENT_ID).value);
         let lng = Number(document.getElementById(LNG_FORM_ELEMENT_ID).value);
@@ -387,6 +392,7 @@ function setLatLng() {
 }
 
 function getLink() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     let myUrl = new URL("https://daemon2017.github.io/yFarseerWeb/");
     myUrl.searchParams.append(LAT_URL_PARAM, map.getCenter().lat);
     myUrl.searchParams.append(LNG_URL_PARAM, map.getCenter().lng);
@@ -396,6 +402,7 @@ function getLink() {
     myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value.replace(/ /g, ""));
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "OK.";
 }
 
 function printState(errorSnpList, snpList) {
@@ -423,6 +430,7 @@ function getArrayMax(myArray, n, property) {
 }
 
 async function getCorrelation() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Busy...";
     let snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     let snpList = getSnpList(snpString, false);
 
