@@ -201,19 +201,21 @@ async function createMap() {
             }
 
             $("#searchForm").on("keydown", function (event) {
-                if (event.keyCode === $.ui.keyCode.TAB &&
-                    $(this).autocomplete("instance").menu.active) {
+                if (event.keyCode === $.ui.keyCode.TAB && $(this).autocomplete("instance").menu.active) {
                     event.preventDefault();
                 }
             }).autocomplete({
                 source: function (request, response) {
-                    if (extractLast(request.term).length >= 3) {
-                        let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
-                        let limitedSnpsList = filteredSnpsList.slice(0, 10);
-                        response(limitedSnpsList);
+                    let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
+                    let limitedSnpsList = filteredSnpsList.slice(0, 10);
+                    response(limitedSnpsList);
+                },
+                search: function (_event, _ui) {
+                    if (extractLast(this.value).length <= 2) {
+                        return false;
                     }
                 },
-                focus: function () {
+                focus: function (_event, _ui) {
                     return false;
                 },
                 select: function (_event, ui) {
