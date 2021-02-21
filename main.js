@@ -361,11 +361,11 @@ async function drawLayers(snpList, threshold, isPrisma) {
         valueField: "count"
     };
 
-    if (isPrisma) {
-        if (snpList !== undefined) {
+    if (snpList !== undefined) {
+        if (isPrisma) {
             heatmapCfg["radius"] = 2;
             heatmapCfg["maxOpacity"] = 0.5;
-            snp = snpList[0];
+            let snp = snpList[0];
             try {
                 data = await getDocFromDb(snp);
             } catch (e) {
@@ -382,9 +382,7 @@ async function drawLayers(snpList, threshold, isPrisma) {
                     i++;
                 }
             }
-        }
-    } else {
-        if (snpList !== undefined) {
+        } else {
             heatmapCfg["radius"] = 3;
             heatmapCfg["maxOpacity"] = 0.9;
             let i = 0;
@@ -442,8 +440,7 @@ async function getDocFromDb(snp) {
     let db = firebase.firestore();
     let docRef = document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? db.collection("new_snps_extended").doc(snp) : db.collection("new_snps").doc(snp);
     let doc = await docRef.get();
-    let data = JSON.parse(doc.data().data);
-    return data;
+    return JSON.parse(doc.data().data);
 }
 
 function getLatLng() {
@@ -521,12 +518,10 @@ async function printCorrelation(snpString) {
     let snpPointsList = [];
     if (snpList !== undefined) {
         let errorSnpList = [];
-        let i = 0;
         for (const snp of snpList) {
             try {
                 let data = await getDocFromDb(snp);
                 snpPointsList.push(data);
-                i++;
             } catch (e) {
                 errorSnpList.push(snp);
             }
