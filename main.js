@@ -515,53 +515,34 @@ async function printCorrelation(snpString) {
     }
     let snpList = getSnpList(snpString, false);
 
-    let snpPointsList = [];
+    let allSnpPointsList = [];
     if (snpList !== undefined) {
         let errorSnpList = [];
         for (const snp of snpList) {
             try {
                 let data = await getDocFromDb(snp);
-                snpPointsList.push(data);
+                allSnpPointsList.push(data);
             } catch (e) {
                 errorSnpList.push(snp);
             }
         }
 
         let correlationMatrix = [];
-        snpPointsList.forEach(function (snpPointsA, a) {
-            let aDict = {};
-            let aMax = getArrayMax(snpPointsList, a, "count");
-            snpPointsA.forEach(function (point) {
-                aDict[`${point["lat"]};${point["lng"]}`] = point["count"] / aMax;
-            });
+        allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
+            let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
 
             let correlationRow = [];
-            snpPointsList.forEach(function (snpPointsB, b) {
-                if (a !== b) {
-                    let bDict = {};
-                    let bMax = getArrayMax(snpPointsList, b, "count");
-                    snpPointsB.forEach(function (point) {
-                        bDict[`${point["lat"]};${point["lng"]}`] = point["count"] / bMax;
-                    });
+            allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
+                if (firstSnpIndex !== secondSnpIndex) {
+                    let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
+                    let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
+                    let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
 
-                    let allPossibleKeysList = Object.keys(aDict).concat(Object.keys(bDict));
-                    allPossibleKeysList = Array.from(new Set(allPossibleKeysList));
-                    allPossibleKeysList = allPossibleKeysList.sort();
-
-                    let countListList = [];
-                    new Array(aDict, bDict).forEach(function (dict) {
-                        let countList = new Array(allPossibleKeysList.length).fill(0);
-                        allPossibleKeysList.forEach(function (key, index) {
-                            countList[index] = dict[key] == undefined ? 0 : dict[key];
-                        });
-                        countListList.push(countList);
-                    });
-
-                    if (arraysEqual(countListList[0], countListList[1])) {
+                    if (isArraysEquals(diversityLevelList[0], diversityLevelList[1])) {
                         correlationRow.push("1.00");
                     } else {
                         correlationRow.push(jStat
-                            .corrcoeff(countListList[0], countListList[1])
+                            .corrcoeff(diversityLevelList[0], diversityLevelList[1])
                             .toFixed(2)
                         );
                     }
@@ -587,7 +568,35 @@ async function printCorrelation(snpString) {
     }
 }
 
-function arraysEqual(a, b) {
+function getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList) {
+    let diversityLevelList = [];
+    new Array(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict).forEach(function (dict) {
+        let countList = new Array(allPossiblePointsList.length).fill(0);
+        allPossiblePointsList.forEach(function (key, index) {
+            countList[index] = dict[key] == undefined ? 0 : dict[key];
+        });
+        diversityLevelList.push(countList);
+    });
+    return diversityLevelList;
+}
+
+function getPointToDiversityPercentDict(allSnpPointsList, index, currentSnpPointsList) {
+    let dict = {};
+    let max = getArrayMax(allSnpPointsList, index, "count");
+    currentSnpPointsList.forEach(function (point) {
+        dict[`${point["lat"]};${point["lng"]}`] = point["count"] / max;
+    });
+    return dict;
+}
+
+function getAllPossiblePoints(aPointToDiversityPercentDict, bPointToDiversityPercentDict) {
+    let allPossiblePointsList = Object.keys(aPointToDiversityPercentDict).concat(Object.keys(bPointToDiversityPercentDict));
+    allPossiblePointsList = Array.from(new Set(allPossiblePointsList));
+    allPossiblePointsList = allPossiblePointsList.sort();
+    return allPossiblePointsList;
+}
+
+function isArraysEquals(a, b) {
     if (a === b) {
         return true;
     }
