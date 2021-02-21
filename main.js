@@ -156,7 +156,7 @@ let baseLayer;
 let firstRun = true;
 let dbSnpsList = [];
 
-async function createMap() {
+async function createMap(isPrisma) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     let snpString;
 
@@ -236,7 +236,7 @@ async function createMap() {
 
     let snpList = getSnpList(snpString, true);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
-    drawLayers(snpList, threshold);
+    drawLayers(snpList, threshold, isPrisma);
 }
 
 async function setCheckboxState() {
@@ -261,27 +261,17 @@ function changeIntensity(intensity) {
             });
 
             let gradient = oldLayer._heatmap._config.gradient;
+            let heatmapCfg = oldLayer._heatmap._config;
 
-            addNewLayer(gradient, threshold, data);
+            addNewLayer(gradient, threshold, data, heatmapCfg);
 
             map.removeLayer(oldLayer);
         }
     });
 }
 
-function addNewLayer(gradient, threshold, data) {
-    let heatmapCfg = {
-        radius: 3,
-        maxOpacity: 0.9,
-        minOpacity: 0.1,
-        scaleRadius: true,
-        useLocalExtrema: false,
-        latField: "lat",
-        lngField: "lng",
-        valueField: "count",
-        gradient: gradient,
-    };
-
+function addNewLayer(gradient, threshold, data, heatmapCfg) {
+    heatmapCfg['gradient'] = gradient;
     let newLayer = new HeatmapOverlay(heatmapCfg);
     newLayer.setData({
         max: threshold,
@@ -292,9 +282,9 @@ function addNewLayer(gradient, threshold, data) {
 
 function clearAll() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+
     for (let i = 0; i < 10; i++) {
-        document.getElementById(`cb${i}`).style =
-            "background-color: transparent";
+        document.getElementById(`cb${i}`).style = "background-color: transparent";
     }
 
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
@@ -304,6 +294,7 @@ function clearAll() {
             map.removeLayer(layer);
         }
     });
+
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
@@ -339,35 +330,99 @@ function getSnpList(snpString, isForDraw) {
     }
 }
 
-async function drawLayers(snpList, threshold) {
-    if (snpList !== undefined) {
-        let errorSnpList = [];
-        let i = 0;
-        for (const snp of snpList) {
+async function drawLayers(snpList, threshold, isPrisma) {
+    let errorSnpList = [];
+    let data;
+    let heatmapCfg = {
+        blur: 0.85,
+        minOpacity: 0.1,
+        scaleRadius: true,
+        useLocalExtrema: false,
+        latField: "lat",
+        lngField: "lng",
+        valueField: "count"
+    };
+
+    if (isPrisma) {
+        if (snpList !== undefined) {
+            heatmapCfg['radius'] = 2;
+            heatmapCfg['maxOpacity'] = 0.5;
+            snp = snpList[0];
             try {
-                let data = await getDocFromDb(snp);
-                let gradient = {};
-                GRADIENT_KEYS.forEach(function (_key, j) {
-                    gradient[GRADIENT_KEYS[j]] = GRADIENT_VALUES[i][j];
-                });
-
-                addNewLayer(gradient, threshold, data);
-
-                document.getElementById(`cb${i}`).style =
-                    `background-color:${GRADIENT_VALUES[i][9]}`;
-                i++;
+                data = await getDocFromDb(snp);
             } catch (e) {
                 errorSnpList.push(snp);
             }
-        }
+            if (data !== undefined) {
+                let snpCombinationsList = getSnpCombinationsList(data);
+                let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
 
-        printState(errorSnpList, snpList);
+                let i = 0;
+                for (const pointGroup of pointGroupsList) {
+                    let gradient = getGradient(i);
+                    addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
+                    i++;
+                }
+            }
+        }
+    } else {
+        if (snpList !== undefined) {
+            heatmapCfg['radius'] = 3;
+            heatmapCfg['maxOpacity'] = 0.9;
+            let i = 0;
+            for (const snp of snpList) {
+                try {
+                    data = await getDocFromDb(snp);
+                } catch (e) {
+                    errorSnpList.push(snp);
+                }
+                if (data !== undefined) {
+                    let gradient = getGradient(i);
+                    addNewLayer(gradient, threshold, data, heatmapCfg);
+                    document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][9]}`;
+                    i++;
+                }
+            }
+        }
     }
+
+    printState(errorSnpList, snpList);
+}
+
+function getGradient(i) {
+    let gradient = [];
+    GRADIENT_KEYS.forEach(function (_key, j) {
+        gradient[GRADIENT_KEYS[j]] = GRADIENT_VALUES[i][j];
+    });
+    return gradient;
+}
+
+function getPointGroupsList(snpCombinationsList, data) {
+    let pointGroupsList = [];
+    for (const snpCombination of snpCombinationsList) {
+        let pointGroup = [];
+        for (const point of data) {
+            if (point['snpsList'].toString() === snpCombination.toString()) {
+                pointGroup.push(point);
+            }
+        }
+        pointGroupsList.push(pointGroup);
+    }
+    return pointGroupsList;
+}
+
+function getSnpCombinationsList(data) {
+    let snpCombinationsList = [];
+    for (const point of data) {
+        snpCombinationsList.push(point['snpsList']);
+    }
+    snpCombinationsList = Array.from(new Set(snpCombinationsList.map(JSON.stringify)), JSON.parse);
+    return snpCombinationsList;
 }
 
 async function getDocFromDb(snp) {
     let db = firebase.firestore();
-    let docRef = document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? db.collection("snps_extended").doc(snp) : db.collection("snps").doc(snp);
+    let docRef = document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? db.collection("new_snps_extended").doc(snp) : db.collection("new_snps").doc(snp);
     let doc = await docRef.get();
     let data = JSON.parse(doc.data().data);
     return data;
@@ -391,8 +446,7 @@ function setLatLng() {
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } catch (e) {
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
-            "Error: Both Lat and Lng must be a number!";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Error: Both Lat and Lng must be a number!";
     }
 }
 

@@ -40,7 +40,7 @@
     </script>
 </head>
 
-<body onload="createMap()">
+<body onload="createMap(false)">
     <div id="mapLayer"></div>
     <div id="controlsLayer">
         <label for="latForm" id="latLabel">
@@ -84,11 +84,14 @@
         <div class="box" id="cb7"></div>
         <div class="box" id="cb8"></div>
         <div class="box" id="cb9"></div>
-        <button type="submit" id="searchButton" onclick="createMap()">
+        <button type="submit" id="searchButton" onclick="createMap(false)">
             Draw
         </button>
         <button type="submit" id="correlButton" onclick="getCorrelation()">
             Correl
+        </button>
+        <button type="submit" id="prismaButton" onclick="createMap(true)">
+            Prisma
         </button>
         <button type="submit" id="clearButton" onclick="clearAll()">
             Clear

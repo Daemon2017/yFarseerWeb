@@ -25,7 +25,8 @@ body * {
 #clearButton,
 #extendedCheckbox,
 #toggle-button,
-#getLinkButton {
+#getLinkButton,
+#prismaButton {
     pointer-events: auto;
 }
 
