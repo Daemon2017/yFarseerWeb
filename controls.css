@@ -19,14 +19,14 @@ body * {
 #lngForm,
 #setLatLngButton,
 #searchForm,
-#searchButton,
+#levelsButton,
 #intensitySlider,
 #correlButton,
 #clearButton,
 #extendedCheckbox,
 #toggle-button,
 #getLinkButton,
-#prismaButton {
+#dispersionButton {
     pointer-events: auto;
 }
 

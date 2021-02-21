@@ -229,7 +229,7 @@ async function main() {
     });
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 
-    if (mode === "layers") {
+    if (mode === "levels") {
         drawMap(false, snpString);
     } else if (mode === "correlation") {
         printCorrelation(snpString);
@@ -238,13 +238,13 @@ async function main() {
     }
 }
 
-async function drawMap(isPrisma, snpString) {
+async function drawMap(isDispersion, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
-    if (isPrisma === true) {
+    if (isDispersion === true) {
         mode = "dispersion";
     } else {
-        mode = "layers";
+        mode = "levels";
     }
 
     clearAll();
@@ -254,7 +254,7 @@ async function drawMap(isPrisma, snpString) {
 
     let snpList = getSnpList(snpString, true);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
-    drawLayers(snpList, threshold, isPrisma);
+    drawLayers(snpList, threshold, isDispersion);
 }
 
 async function setCheckboxState() {
@@ -348,7 +348,7 @@ function getSnpList(snpString, isForDraw) {
     }
 }
 
-async function drawLayers(snpList, threshold, isPrisma) {
+async function drawLayers(snpList, threshold, isDispersion) {
     let errorSnpList = [];
     let data;
     let heatmapCfg = {
@@ -362,7 +362,7 @@ async function drawLayers(snpList, threshold, isPrisma) {
     };
 
     if (snpList !== undefined) {
-        if (isPrisma) {
+        if (isDispersion) {
             heatmapCfg["radius"] = 2;
             heatmapCfg["maxOpacity"] = 0.5;
             let snp = snpList[0];
