@@ -139,6 +139,7 @@ const ZOOM_URL_PARAM = "zoom";
 const ISEXTENDED_URL_PARAM = "isExtended";
 const THRESHOLD_URL_PARAM = "threshold";
 const SNPS_URL_PARAM = "snps";
+const MODE_URL_PARAM = "mode";
 
 const LAT_FORM_ELEMENT_ID = "latForm";
 const LNG_FORM_ELEMENT_ID = "lngForm";
@@ -155,82 +156,99 @@ let map;
 let baseLayer;
 let firstRun = true;
 let dbSnpsList = [];
+let mode;
 
-async function createMap(isPrisma) {
+async function main() {
+    let queryString = window.location.search;
+    let urlParams = new URLSearchParams(queryString);
+    let lat = urlParams.get(LAT_URL_PARAM) == null ? 48.814170 : urlParams.get(LAT_URL_PARAM);
+    document.getElementById(LAT_FORM_ELEMENT_ID).value = lat;
+    let lng = urlParams.get(LNG_URL_PARAM) == null ? 23.169720 : urlParams.get(LNG_URL_PARAM);
+    document.getElementById(LNG_FORM_ELEMENT_ID).value = lng;
+    let zoom = urlParams.get(ZOOM_URL_PARAM) == null ? 4 : urlParams.get(ZOOM_URL_PARAM);
+    document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked = urlParams.get(ISEXTENDED_URL_PARAM) == "true" ? true : false;
+    document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value = urlParams.get(THRESHOLD_URL_PARAM) == null ? 5 : urlParams.get(THRESHOLD_URL_PARAM);
+    let snpString = urlParams.get(SNPS_URL_PARAM);
+    mode = urlParams.get(MODE_URL_PARAM);
+
+    baseLayer = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://cloudmade.com">CloudMade</a>',
+            maxZoom: 10,
+        }
+    );
+
+    map = new L.Map("mapLayer", {
+        center: new L.LatLng(lat, lng),
+        zoom: zoom,
+        layers: [baseLayer],
+    });
+
+    map.addEventListener("move", getLatLng());
+
+    firstRun = false;
+
+    dbSnpsList = await getDocFromDb("list");
+
+    $(function () {
+        function split(val) {
+            return val.split(/,\s*/);
+        }
+
+        function extractLast(term) {
+            return split(term).pop();
+        }
+
+        $("#searchForm").on("keydown", function (event) {
+            if (event.keyCode === $.ui.keyCode.TAB && $(this).autocomplete("instance").menu.active) {
+                event.preventDefault();
+            }
+        }).autocomplete({
+            source: function (request, response) {
+                let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
+                let limitedSnpsList = filteredSnpsList.slice(0, 10);
+                response(limitedSnpsList);
+            },
+            search: function (_event, _ui) {
+                if (extractLast(this.value).length <= 2) {
+                    return false;
+                }
+            },
+            focus: function (_event, _ui) {
+                return false;
+            },
+            select: function (_event, ui) {
+                var terms = split(this.value);
+                terms.pop();
+                terms.push(ui.item.value);
+                terms.push("");
+                this.value = terms.join(",");
+                return false;
+            }
+        });
+    });
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+
+    if (mode === "layers") {
+        drawMap(false, snpString);
+    } else if (mode === "correlation") {
+        printCorrelation(snpString);
+    } else if (mode === "dispersion") {
+        drawMap(true, snpString);
+    }
+}
+
+async function drawMap(isPrisma, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
-    let snpString;
 
-    if (firstRun === true) {
-        let queryString = window.location.search;
-        let urlParams = new URLSearchParams(queryString);
-        let lat = urlParams.get(LAT_URL_PARAM) == null ? 48.814170 : urlParams.get(LAT_URL_PARAM);
-        document.getElementById(LAT_FORM_ELEMENT_ID).value = lat;
-        let lng = urlParams.get(LNG_URL_PARAM) == null ? 23.169720 : urlParams.get(LNG_URL_PARAM);
-        document.getElementById(LNG_FORM_ELEMENT_ID).value = lng;
-        let zoom = urlParams.get(ZOOM_URL_PARAM) == null ? 4 : urlParams.get(ZOOM_URL_PARAM);
-        document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked = urlParams.get(ISEXTENDED_URL_PARAM) == "true" ? true : false;
-        document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value = urlParams.get(THRESHOLD_URL_PARAM) == null ? 5 : urlParams.get(THRESHOLD_URL_PARAM);
-        snpString = urlParams.get(SNPS_URL_PARAM);
-
-        baseLayer = L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://cloudmade.com">CloudMade</a>',
-                maxZoom: 10,
-            }
-        );
-
-        map = new L.Map("mapLayer", {
-            center: new L.LatLng(lat, lng),
-            zoom: zoom,
-            layers: [baseLayer],
-        });
-
-        map.addEventListener("move", getLatLng());
-
-        firstRun = false;
-
-        dbSnpsList = await getDocFromDb("list");
-
-        $(function () {
-            function split(val) {
-                return val.split(/,\s*/);
-            }
-
-            function extractLast(term) {
-                return split(term).pop();
-            }
-
-            $("#searchForm").on("keydown", function (event) {
-                if (event.keyCode === $.ui.keyCode.TAB && $(this).autocomplete("instance").menu.active) {
-                    event.preventDefault();
-                }
-            }).autocomplete({
-                source: function (request, response) {
-                    let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
-                    let limitedSnpsList = filteredSnpsList.slice(0, 10);
-                    response(limitedSnpsList);
-                },
-                search: function (_event, _ui) {
-                    if (extractLast(this.value).length <= 2) {
-                        return false;
-                    }
-                },
-                focus: function (_event, _ui) {
-                    return false;
-                },
-                select: function (_event, ui) {
-                    var terms = split(this.value);
-                    terms.pop();
-                    terms.push(ui.item.value);
-                    terms.push("");
-                    this.value = terms.join(",");
-                    return false;
-                }
-            });
-        });
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+    if (isPrisma === true) {
+        mode = "dispersion";
     } else {
-        clearAll();
+        mode = "layers";
+    }
+
+    clearAll();
+    if (snpString === null | snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
@@ -271,7 +289,7 @@ function changeIntensity(intensity) {
 }
 
 function addNewLayer(gradient, threshold, data, heatmapCfg) {
-    heatmapCfg['gradient'] = gradient;
+    heatmapCfg["gradient"] = gradient;
     let newLayer = new HeatmapOverlay(heatmapCfg);
     newLayer.setData({
         max: threshold,
@@ -345,8 +363,8 @@ async function drawLayers(snpList, threshold, isPrisma) {
 
     if (isPrisma) {
         if (snpList !== undefined) {
-            heatmapCfg['radius'] = 2;
-            heatmapCfg['maxOpacity'] = 0.5;
+            heatmapCfg["radius"] = 2;
+            heatmapCfg["maxOpacity"] = 0.5;
             snp = snpList[0];
             try {
                 data = await getDocFromDb(snp);
@@ -367,8 +385,8 @@ async function drawLayers(snpList, threshold, isPrisma) {
         }
     } else {
         if (snpList !== undefined) {
-            heatmapCfg['radius'] = 3;
-            heatmapCfg['maxOpacity'] = 0.9;
+            heatmapCfg["radius"] = 3;
+            heatmapCfg["maxOpacity"] = 0.9;
             let i = 0;
             for (const snp of snpList) {
                 try {
@@ -402,7 +420,7 @@ function getPointGroupsList(snpCombinationsList, data) {
     for (const snpCombination of snpCombinationsList) {
         let pointGroup = [];
         for (const point of data) {
-            if (point['snpsList'].toString() === snpCombination.toString()) {
+            if (point["snpsList"].toString() === snpCombination.toString()) {
                 pointGroup.push(point);
             }
         }
@@ -414,7 +432,7 @@ function getPointGroupsList(snpCombinationsList, data) {
 function getSnpCombinationsList(data) {
     let snpCombinationsList = [];
     for (const point of data) {
-        snpCombinationsList.push(point['snpsList']);
+        snpCombinationsList.push(point["snpsList"]);
     }
     snpCombinationsList = Array.from(new Set(snpCombinationsList.map(JSON.stringify)), JSON.parse);
     return snpCombinationsList;
@@ -459,6 +477,7 @@ function getLink() {
     myUrl.searchParams.append(ISEXTENDED_URL_PARAM, document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked);
     myUrl.searchParams.append(THRESHOLD_URL_PARAM, document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
     myUrl.searchParams.append(SNPS_URL_PARAM, document.getElementById(SEARCH_FORM_ELEMENT_ID).value.replace(/ /g, ""));
+    myUrl.searchParams.append(MODE_URL_PARAM, mode);
 
     window.prompt("Copy to clipboard: Ctrl+C, Enter", myUrl);
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
@@ -488,9 +507,15 @@ function getArrayMax(myArray, n, property) {
     }));
 }
 
-async function getCorrelation() {
+async function printCorrelation(snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
-    let snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
+
+    mode = "correlation";
+
+    clearAll();
+    if (snpString === null | snpString === undefined) {
+        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
+    }
     let snpList = getSnpList(snpString, false);
 
     let snpPointsList = [];
