@@ -349,8 +349,6 @@ function getSnpList(snpString, isForDraw) {
 }
 
 async function drawLayers(snpList, threshold, isDispersion) {
-    let errorSnpList = [];
-    let data;
     let heatmapCfg = {
         blur: 0.85,
         minOpacity: 0.1,
@@ -363,45 +361,57 @@ async function drawLayers(snpList, threshold, isDispersion) {
 
     if (snpList !== undefined) {
         if (isDispersion) {
-            heatmapCfg["radius"] = 2;
-            heatmapCfg["maxOpacity"] = 0.5;
-            let snp = snpList[0];
-            try {
-                data = await getDocFromDb(snp);
-            } catch (e) {
-                errorSnpList.push(snp);
-            }
-            if (data !== undefined) {
-                let snpCombinationsList = getSnpCombinationsList(data);
-                let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
-
-                let i = 0;
-                for (const pointGroup of pointGroupsList) {
-                    let gradient = getGradient(i);
-                    addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
-                    i++;
-                }
-            }
+            await drawDispersionLayers(heatmapCfg, snpList, threshold);
         } else {
-            heatmapCfg["radius"] = 3;
-            heatmapCfg["maxOpacity"] = 0.9;
-            let i = 0;
-            for (const snp of snpList) {
-                try {
-                    data = await getDocFromDb(snp);
-                } catch (e) {
-                    errorSnpList.push(snp);
-                }
-                if (data !== undefined) {
-                    let gradient = getGradient(i);
-                    addNewLayer(gradient, threshold, data, heatmapCfg);
-                    document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][9]}`;
-                    i++;
-                }
-            }
+            await drawLevelsLayers(heatmapCfg, snpList, threshold);
         }
     }
+}
 
+async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
+    heatmapCfg["radius"] = 3;
+    heatmapCfg["maxOpacity"] = 0.9;
+    let i = 0;
+    let errorSnpList = [];
+    for (const snp of snpList) {
+        let data;
+        try {
+            data = await getDocFromDb(snp);
+        } catch (e) {
+            errorSnpList.push(snp);
+        }
+        if (data !== undefined) {
+            let gradient = getGradient(i);
+            addNewLayer(gradient, threshold, data, heatmapCfg);
+            document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][9]}`;
+            i++;
+        }
+    }
+    printState(errorSnpList, snpList);
+}
+
+async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
+    heatmapCfg["radius"] = 2;
+    heatmapCfg["maxOpacity"] = 0.5;
+    let snp = snpList[0];
+    let errorSnpList = [];
+    let data;
+    try {
+        data = await getDocFromDb(snp);
+    } catch (e) {
+        errorSnpList.push(snp);
+    }
+    if (data !== undefined) {
+        let snpCombinationsList = getSnpCombinationsList(data);
+        let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
+
+        let i = 0;
+        for (const pointGroup of pointGroupsList) {
+            let gradient = getGradient(i);
+            addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
+            i++;
+        }
+    }
     printState(errorSnpList, snpList);
 }
 
@@ -527,31 +537,7 @@ async function printCorrelation(snpString) {
             }
         }
 
-        let correlationMatrix = [];
-        allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
-            let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
-
-            let correlationRow = [];
-            allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
-                if (firstSnpIndex !== secondSnpIndex) {
-                    let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
-                    let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
-                    let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
-
-                    if (isArraysEquals(diversityLevelList[0], diversityLevelList[1])) {
-                        correlationRow.push("1.00");
-                    } else {
-                        correlationRow.push(jStat
-                            .corrcoeff(diversityLevelList[0], diversityLevelList[1])
-                            .toFixed(2)
-                        );
-                    }
-                } else {
-                    correlationRow.push("1.00");
-                }
-            });
-            correlationMatrix.push(correlationRow);
-        })
+        let correlationMatrix = getCorrelationMatrix(allSnpPointsList);
 
         let successSnpList = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
@@ -566,6 +552,40 @@ async function printCorrelation(snpString) {
 
         printState(errorSnpList, snpList);
     }
+}
+
+function getCorrelationMatrix(allSnpPointsList) {
+    let correlationMatrix = [];
+    allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
+        let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
+
+        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpIndex, firstSnpPointToDiversityPercentDict);
+        correlationMatrix.push(correlationRow);
+    });
+    return correlationMatrix;
+}
+
+function getCorrelationRow(allSnpPointsList, firstSnpIndex, firstSnpPointToDiversityPercentDict) {
+    let correlationRow = [];
+    allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
+        if (firstSnpIndex !== secondSnpIndex) {
+            let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
+            let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
+            let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
+
+            if (isArraysEquals(diversityLevelList[0], diversityLevelList[1])) {
+                correlationRow.push("1.00");
+            } else {
+                correlationRow.push(jStat
+                    .corrcoeff(diversityLevelList[0], diversityLevelList[1])
+                    .toFixed(2)
+                );
+            }
+        } else {
+            correlationRow.push("1.00");
+        }
+    });
+    return correlationRow;
 }
 
 function getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList) {
