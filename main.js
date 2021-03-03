@@ -256,7 +256,7 @@ async function drawMap(isDispersion, snpString) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
-    let snpList = getSnpList(snpString, mode);
+    let snpList = getSnpList(snpString);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(snpList, threshold, isDispersion);
 }
@@ -317,7 +317,7 @@ function clearAll() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
-function getSnpList(snpString, mode) {
+function getSnpList(snpString) {
     if (snpString !== null) {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
@@ -529,11 +529,13 @@ function getArrayMax(myArray, n, property) {
 async function printCorrelation(snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
+    mode = CORRELATION_MODE;
+
     clearAll();
     if (snpString === null | snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
-    let snpList = getSnpList(snpString, CORRELATION_MODE);
+    let snpList = getSnpList(snpString);
 
     let allSnpPointsList = [];
     if (snpList !== undefined) {
