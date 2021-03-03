@@ -391,7 +391,7 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
             i++;
         }
     }
-    printState(errorSnpList, snpList);
+    printSnpReceivingState(errorSnpList, snpList);
 }
 
 async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
@@ -402,7 +402,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
     try {
         data = await getDocFromDb(snp);
     } catch (e) {
-        printState([snp], snpList);
+        printSnpReceivingState([snp], snpList);
     }
     if (data !== undefined) {
         let snpCombinationsList = getSnpCombinationsList(data);
@@ -502,19 +502,13 @@ function getLink() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
-function printState(errorSnpList, snpList) {
+function printSnpReceivingState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } else if (snpList.length - errorSnpList.length === 0) {
-        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.filter(function (snp) {
-            return !errorSnpList.includes(snp);
-        }).join(",");
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             `Error: Data of all SNPs wasn't received!`;
     } else {
-        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.filter(function (snp) {
-            return !errorSnpList.includes(snp);
-        }).join(",");
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
     }
@@ -562,7 +556,7 @@ async function printCorrelation(snpString) {
             });
         }
 
-        printState(errorSnpList, snpList);
+        printSnpReceivingState(errorSnpList, snpList);
     }
 }
 
