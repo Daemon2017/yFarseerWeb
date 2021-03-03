@@ -158,6 +158,10 @@ let firstRun = true;
 let dbSnpsList = [];
 let mode;
 
+const LEVELS_MODE = "levels";
+const CORRELATION_MODE = "correlation";
+const DISPERSION_MODE = "dispersion";
+
 async function main() {
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
@@ -229,11 +233,11 @@ async function main() {
     });
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 
-    if (mode === "levels") {
+    if (mode === LEVELS_MODE) {
         drawMap(false, snpString);
-    } else if (mode === "correlation") {
+    } else if (mode === CORRELATION_MODE) {
         printCorrelation(snpString);
-    } else if (mode === "dispersion") {
+    } else if (mode === DISPERSION_MODE) {
         drawMap(true, snpString);
     }
 }
@@ -242,9 +246,9 @@ async function drawMap(isDispersion, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isDispersion === true) {
-        mode = "dispersion";
+        mode = DISPERSION_MODE;
     } else {
-        mode = "levels";
+        mode = LEVELS_MODE;
     }
 
     clearAll();
@@ -252,7 +256,7 @@ async function drawMap(isDispersion, snpString) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
-    let snpList = getSnpList(snpString, true);
+    let snpList = getSnpList(snpString, mode);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(snpList, threshold, isDispersion);
 }
@@ -300,23 +304,20 @@ function addNewLayer(gradient, threshold, data, heatmapCfg) {
 
 function clearAll() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
-
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style = "background-color: transparent";
+        document.getElementById(`cb${i}`).innerHTML = null;
     }
-
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
-
     map.eachLayer(function (layer) {
         if (layer !== baseLayer) {
             map.removeLayer(layer);
         }
     });
-
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
-function getSnpList(snpString, isForDraw) {
+function getSnpList(snpString, mode) {
     if (snpString !== null) {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
@@ -332,9 +333,11 @@ function getSnpList(snpString, isForDraw) {
         document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
 
         let maxLength;
-        if (isForDraw) {
+        if (mode === DISPERSION_MODE) {
+            maxLength = 1;
+        } else if (mode === LEVELS_MODE) {
             maxLength = 10;
-        } else {
+        } else if (mode === CORRELATION_MODE) {
             maxLength = 50;
         }
 
@@ -383,7 +386,8 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
         if (data !== undefined) {
             let gradient = getGradient(i);
             addNewLayer(gradient, threshold, data, heatmapCfg);
-            document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][9]}`;
+            document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][6]}`;
+            document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snp}</span>`;
             i++;
         }
     }
@@ -394,25 +398,31 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
     heatmapCfg["radius"] = 2;
     heatmapCfg["maxOpacity"] = 0.5;
     let snp = snpList[0];
-    let errorSnpList = [];
     let data;
     try {
         data = await getDocFromDb(snp);
     } catch (e) {
-        errorSnpList.push(snp);
+        printState([snp], snpList);
     }
     if (data !== undefined) {
         let snpCombinationsList = getSnpCombinationsList(data);
-        let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
-
-        let i = 0;
-        for (const pointGroup of pointGroupsList) {
-            let gradient = getGradient(i);
-            addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
-            i++;
+        if (snpCombinationsList.length <= 10) {
+            let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
+            for (const [i, pointGroup] of pointGroupsList.entries()) {
+                let gradient = getGradient(i);
+                addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
+                document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][6]}`;
+            }
+            for (const [i, snpCombination] of snpCombinationsList.entries()) {
+                let snpCombinationText = snpCombination.join(",");
+                document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snpCombinationText}</span>`;
+            }
+        } else {
+            let tooMuchDispersionGroupsErrorText = "Error: Selected SNP has more than the maximum allowed (10) number of dispersion groups :(";
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
+            throw tooMuchDispersionGroupsErrorText;
         }
     }
-    printState(errorSnpList, snpList);
 }
 
 function getGradient(i) {
@@ -471,7 +481,9 @@ function setLatLng() {
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } catch (e) {
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = "Error: Both Lat and Lng must be a number!";
+        let latAndLngMustBeANumberErrorText = "Error: Both Lat and Lng must be a number!";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = latAndLngMustBeANumberErrorText;
+        throw latAndLngMustBeANumberErrorText;
     }
 }
 
@@ -517,13 +529,11 @@ function getArrayMax(myArray, n, property) {
 async function printCorrelation(snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
-    mode = "correlation";
-
     clearAll();
     if (snpString === null | snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
-    let snpList = getSnpList(snpString, false);
+    let snpList = getSnpList(snpString, CORRELATION_MODE);
 
     let allSnpPointsList = [];
     if (snpList !== undefined) {

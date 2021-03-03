@@ -26,7 +26,17 @@ body * {
 #extendedCheckbox,
 #toggle-button,
 #getLinkButton,
-#dispersionButton {
+#dispersionButton,
+#cb0,
+#cb1,
+#cb2,
+#cb3,
+#cb4,
+#cb5,
+#cb6,
+#cb7,
+#cb8,
+#cb9 {
     pointer-events: auto;
 }
 
@@ -91,4 +101,44 @@ body * {
 
 .toggle-button:checked {
     background-color: #0075FF;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: 1;
+    top: 135%;
+    left: 50%;
+    margin-left: -60px;
+
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }
