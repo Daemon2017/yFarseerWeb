@@ -251,7 +251,7 @@ async function drawMap(isDispersion, snpString) {
         mode = LEVELS_MODE;
     }
 
-    clearAll();
+    clearAll(false);
     if (snpString === null | snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
@@ -302,8 +302,10 @@ function addNewLayer(gradient, threshold, data, heatmapCfg) {
     map.addLayer(newLayer);
 }
 
-function clearAll() {
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+function clearAll(isButtonPressed) {
+    if (isButtonPressed) {
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+    }
     for (let i = 0; i < 10; i++) {
         document.getElementById(`cb${i}`).style = "background-color: transparent";
         document.getElementById(`cb${i}`).innerHTML = null;
@@ -314,7 +316,9 @@ function clearAll() {
             map.removeLayer(layer);
         }
     });
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+    if (isButtonPressed) {
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+    }
 }
 
 function getSnpList(snpString) {
@@ -525,7 +529,7 @@ async function printCorrelation(snpString) {
 
     mode = CORRELATION_MODE;
 
-    clearAll();
+    clearAll(false);
     if (snpString === null | snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
