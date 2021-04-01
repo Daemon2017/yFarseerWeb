@@ -569,31 +569,22 @@ function getCorrelationMatrix(allSnpPointsList) {
     allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
         let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
 
-        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpIndex, firstSnpPointToDiversityPercentDict);
+        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict);
         correlationMatrix.push(correlationRow);
     });
     return correlationMatrix;
 }
 
-function getCorrelationRow(allSnpPointsList, firstSnpIndex, firstSnpPointToDiversityPercentDict) {
+function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict) {
     let correlationRow = [];
     allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
-        if (firstSnpIndex !== secondSnpIndex) {
-            let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
-            let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
-            let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
-
-            if (isArraysEquals(diversityLevelList[0], diversityLevelList[1])) {
-                correlationRow.push("1.00");
-            } else {
-                correlationRow.push(jStat
-                    .corrcoeff(diversityLevelList[0], diversityLevelList[1])
-                    .toFixed(2)
-                );
-            }
-        } else {
-            correlationRow.push("1.00");
-        }
+        let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
+        let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
+        let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
+        correlationRow.push(jStat
+            .corrcoeff(diversityLevelList[0], diversityLevelList[1])
+            .toFixed(2)
+        );
     });
     return correlationRow;
 }
