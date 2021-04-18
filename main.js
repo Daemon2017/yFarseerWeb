@@ -154,16 +154,17 @@ const OK_STATE_TEXT = "OK.";
 
 let map;
 let baseLayer;
-let firstRun = true;
 let dbSnpsList = [];
 let mode;
 
 const LEVELS_MODE = "levels";
+const DISPERSION_MODE = "dispersion";
 const CORRELATION_ALL_MODE = "correlationAll";
 const CORRELATION_INTERSECT_MODE = "correlationIntersect";
-const DISPERSION_MODE = "dispersion";
 
 async function main() {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
     let lat = urlParams.get(LAT_URL_PARAM) == null ? 48.814170 : urlParams.get(LAT_URL_PARAM);
@@ -188,13 +189,18 @@ async function main() {
         zoom: zoom,
         layers: [baseLayer],
     });
-
     map.addEventListener("move", getLatLng());
-
-    firstRun = false;
 
     dbSnpsList = await getDocFromDb("list");
 
+    attachDropDownPrompt();
+
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+
+    selectAction(snpString);
+}
+
+function attachDropDownPrompt() {
     $(function () {
         function split(val) {
             return val.split(/,\s*/);
@@ -210,7 +216,7 @@ async function main() {
             }
         }).autocomplete({
             source: function (request, response) {
-                let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())))
+                let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())));
                 let limitedSnpsList = filteredSnpsList.slice(0, 10);
                 response(limitedSnpsList);
             },
@@ -232,16 +238,17 @@ async function main() {
             }
         });
     });
-    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
+}
 
+function selectAction(snpString) {
     if (mode === LEVELS_MODE) {
         drawMap(false, snpString);
-    } else if (mode === CORRELATION_ALL_MODE) {
-        printCorrelation(true, snpString);
-    }else if (mode === CORRELATION_INTERSECT_MODE) {
-        printCorrelation(false, snpString);
     } else if (mode === DISPERSION_MODE) {
         drawMap(true, snpString);
+    } else if (mode === CORRELATION_INTERSECT_MODE) {
+        printCorrelation(false, snpString);
+    } else if (mode === CORRELATION_ALL_MODE) {
+        printCorrelation(true, snpString);
     }
 }
 
@@ -305,8 +312,8 @@ function addNewLayer(gradient, threshold, data, heatmapCfg) {
     map.addLayer(newLayer);
 }
 
-function clearAll(isButtonPressed) {
-    if (isButtonPressed) {
+function clearAll(isClearButtonPressed) {
+    if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     }
     for (let i = 0; i < 10; i++) {
@@ -319,7 +326,7 @@ function clearAll(isButtonPressed) {
             map.removeLayer(layer);
         }
     });
-    if (isButtonPressed) {
+    if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
 }
@@ -590,25 +597,33 @@ function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict
         let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
         let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
         if (isAll) {
-            let newDiversityLevelList = [ [], [] ];
-            for (let i = 0; i < diversityLevelList[0].length; i++) {
-                if (diversityLevelList[0][i] !== 0 & diversityLevelList[1][i] !== 0) {
-                    newDiversityLevelList[0].push(diversityLevelList[0][i]);
-                    newDiversityLevelList[1].push(diversityLevelList[1][i]);
-                }
-            }
-            correlationRow.push(jStat
-                .corrcoeff(newDiversityLevelList[0], newDiversityLevelList[1])
-                .toFixed(2)
-            );
+            getCorrelationAllRow(correlationRow, diversityLevelList);
         } else {
-            correlationRow.push(jStat
-                .corrcoeff(diversityLevelList[0], diversityLevelList[1])
-                .toFixed(2)
-            );
+            getCorrelationIntersectedRow(diversityLevelList, correlationRow);
         }
     });
     return correlationRow;
+}
+
+function getCorrelationAllRow(correlationRow, diversityLevelList) {
+    correlationRow.push(jStat
+        .corrcoeff(diversityLevelList[0], diversityLevelList[1])
+        .toFixed(2)
+    );
+}
+
+function getCorrelationIntersectedRow(diversityLevelList, correlationRow) {
+    let newDiversityLevelList = [[], []];
+    for (let i = 0; i < diversityLevelList[0].length; i++) {
+        if (diversityLevelList[0][i] !== 0 & diversityLevelList[1][i] !== 0) {
+            newDiversityLevelList[0].push(diversityLevelList[0][i]);
+            newDiversityLevelList[1].push(diversityLevelList[1][i]);
+        }
+    }
+    correlationRow.push(jStat
+        .corrcoeff(newDiversityLevelList[0], newDiversityLevelList[1])
+        .toFixed(2)
+    );
 }
 
 function getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList) {
