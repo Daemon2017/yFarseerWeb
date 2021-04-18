@@ -1,8 +1,7 @@
 #controlsLayer {
-    position: absolute;
+    position: relative;
     display: block;
     margin-left: 50px;
-    margin-top: 10px;
     z-index: 1;
     pointer-events: none;
 }
@@ -21,7 +20,8 @@ body * {
 #searchForm,
 #levelsButton,
 #intensitySlider,
-#correlButton,
+#correlAllButton,
+#correlIntersectButton,
 #clearButton,
 #extendedCheckbox,
 #toggle-button,

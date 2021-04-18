@@ -1,8 +1,7 @@
 #correlationMatrix {
-    position: absolute;
+    position: relative;
     display: block;
     margin-left: 0px;
-    margin-top: 75px;
     z-index: 2;
     pointer-events: auto;
     max-width: 100%;
@@ -10,7 +9,6 @@
 
 #correlTable {
     pointer-events: auto;
-    display: block;
     overflow: auto;
     background-color: white;
 }

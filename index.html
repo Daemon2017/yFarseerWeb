@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="shortcut icon" href="#">
     <title>yFarseerWeb</title>
     <link rel="stylesheet" type="text/css" href="map.css" />
@@ -74,21 +74,14 @@
         </label>
 
         <br />
-        <div class="box tooltip" id="cb0"></div>
-        <div class="box tooltip" id="cb1"></div>
-        <div class="box tooltip" id="cb2"></div>
-        <div class="box tooltip" id="cb3"></div>
-        <div class="box tooltip" id="cb4"></div>
-        <div class="box tooltip" id="cb5"></div>
-        <div class="box tooltip" id="cb6"></div>
-        <div class="box tooltip" id="cb7"></div>
-        <div class="box tooltip" id="cb8"></div>
-        <div class="box tooltip" id="cb9"></div>
         <button type="submit" id="levelsButton" onclick="drawMap(false, null)">
             Levels
         </button>
-        <button type="submit" id="correlButton" onclick="printCorrelation()">
-            Correlation
+        <button type="submit" id="correlAllButton" onclick="printCorrelation(true, null)">
+            CorrelationAll
+        </button>
+        <button type="submit" id="correlIntersectButton" onclick="printCorrelation(false, null)">
+            CorrelationIntersect
         </button>
         <button type="submit" id="dispersionButton" onclick="drawMap(true, null)">
             Dispersion
@@ -96,6 +89,20 @@
         <button type="submit" id="clearButton" onclick="clearAll(true)">
             Clear
         </button>
+
+        <br />
+        <div id="boxes">
+            <div class="box tooltip" id="cb0"></div>
+            <div class="box tooltip" id="cb1"></div>
+            <div class="box tooltip" id="cb2"></div>
+            <div class="box tooltip" id="cb3"></div>
+            <div class="box tooltip" id="cb4"></div>
+            <div class="box tooltip" id="cb5"></div>
+            <div class="box tooltip" id="cb6"></div>
+            <div class="box tooltip" id="cb7"></div>
+            <div class="box tooltip" id="cb8"></div>
+            <div class="box tooltip" id="cb9"></div>
+        </div>
         <label id="stateLabel"> OK. </label>
     </div>
     <div id="correlationMatrix"></div>

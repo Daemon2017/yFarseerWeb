@@ -159,7 +159,8 @@ let dbSnpsList = [];
 let mode;
 
 const LEVELS_MODE = "levels";
-const CORRELATION_MODE = "correlation";
+const CORRELATION_ALL_MODE = "correlationAll";
+const CORRELATION_INTERSECT_MODE = "correlationIntersect";
 const DISPERSION_MODE = "dispersion";
 
 async function main() {
@@ -235,8 +236,10 @@ async function main() {
 
     if (mode === LEVELS_MODE) {
         drawMap(false, snpString);
-    } else if (mode === CORRELATION_MODE) {
-        printCorrelation(snpString);
+    } else if (mode === CORRELATION_ALL_MODE) {
+        printCorrelation(true, snpString);
+    }else if (mode === CORRELATION_INTERSECT_MODE) {
+        printCorrelation(false, snpString);
     } else if (mode === DISPERSION_MODE) {
         drawMap(true, snpString);
     }
@@ -341,9 +344,9 @@ function getSnpList(snpString) {
             maxLength = 1;
         } else if (mode === LEVELS_MODE) {
             maxLength = 10;
-        } else if (mode === CORRELATION_MODE) {
+        } else if (mode === CORRELATION_ALL_MODE || mode === CORRELATION_INTERSECT_MODE) {
             maxLength = 50;
-        }
+        } 
 
         if (!(snpList.length > 0 && snpList.length <= maxLength)) {
             let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
@@ -421,6 +424,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
                 let snpCombinationText = snpCombination.join(",");
                 document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snpCombinationText}</span>`;
             }
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
         } else {
             let tooMuchDispersionGroupsErrorText = "Error: Selected SNP has more than the maximum allowed (10) number of dispersion groups :(";
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
@@ -524,10 +528,14 @@ function getArrayMax(myArray, n, property) {
     }));
 }
 
-async function printCorrelation(snpString) {
+async function printCorrelation(isAll, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
-    mode = CORRELATION_MODE;
+    if (isAll) {
+        mode = CORRELATION_ALL_MODE;
+    } else {
+        mode = CORRELATION_INTERSECT_MODE;
+    }
 
     clearAll(false);
     if (snpString === null | snpString === undefined) {
@@ -547,7 +555,7 @@ async function printCorrelation(snpString) {
             }
         }
 
-        let correlationMatrix = getCorrelationMatrix(allSnpPointsList);
+        let correlationMatrix = getCorrelationMatrix(allSnpPointsList, isAll);
 
         let successSnpList = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
@@ -564,27 +572,41 @@ async function printCorrelation(snpString) {
     }
 }
 
-function getCorrelationMatrix(allSnpPointsList) {
+function getCorrelationMatrix(allSnpPointsList, isAll) {
     let correlationMatrix = [];
     allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
         let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
 
-        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict);
+        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict, isAll);
         correlationMatrix.push(correlationRow);
     });
     return correlationMatrix;
 }
 
-function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict) {
+function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict, isAll) {
     let correlationRow = [];
     allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
         let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
         let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
         let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
-        correlationRow.push(jStat
-            .corrcoeff(diversityLevelList[0], diversityLevelList[1])
-            .toFixed(2)
-        );
+        if (isAll) {
+            let newDiversityLevelList = [ [], [] ];
+            for (let i = 0; i < diversityLevelList[0].length; i++) {
+                if (diversityLevelList[0][i] !== 0 & diversityLevelList[1][i] !== 0) {
+                    newDiversityLevelList[0].push(diversityLevelList[0][i]);
+                    newDiversityLevelList[1].push(diversityLevelList[1][i]);
+                }
+            }
+            correlationRow.push(jStat
+                .corrcoeff(newDiversityLevelList[0], newDiversityLevelList[1])
+                .toFixed(2)
+            );
+        } else {
+            correlationRow.push(jStat
+                .corrcoeff(diversityLevelList[0], diversityLevelList[1])
+                .toFixed(2)
+            );
+        }
     });
     return correlationRow;
 }
