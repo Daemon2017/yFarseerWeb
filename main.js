@@ -148,9 +148,12 @@ const INTENSITY_SLIDER_ELEMENT_ID = "intensitySlider";
 const SEARCH_FORM_ELEMENT_ID = "searchForm";
 const CORRELATION_MATRIX_ELEMENT_ID = "correlationMatrix";
 const STATE_LABEL_ELEMENT_ID = "stateLabel";
+const BOXES_ELEMENT_ID = "boxes";
 
 const BUSY_STATE_TEXT = "Busy...";
 const OK_STATE_TEXT = "OK.";
+
+const colorBoxesNumber = 10;
 
 let map;
 let baseLayer;
@@ -164,6 +167,12 @@ const CORRELATION_INTERSECT_MODE = "correlationIntersect";
 
 async function main() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+
+    let colorBoxesInnerHtml =  ``;
+    for (let i = 0; i < colorBoxesNumber; i++) {
+        colorBoxesInnerHtml += `<div class="box tooltip" id="cb${i}"></div>`;
+    }
+    document.getElementById(BOXES_ELEMENT_ID).innerHTML = colorBoxesInnerHtml;
 
     let queryString = window.location.search;
     let urlParams = new URLSearchParams(queryString);
@@ -217,7 +226,7 @@ function attachDropDownPrompt() {
         }).autocomplete({
             source: function (request, response) {
                 let filteredSnpsList = dbSnpsList.filter(snp => snp.startsWith(extractLast(request.term.toUpperCase())));
-                let limitedSnpsList = filteredSnpsList.slice(0, 10);
+                let limitedSnpsList = filteredSnpsList.slice(0, colorBoxesNumber);
                 response(limitedSnpsList);
             },
             search: function (_event, _ui) {
@@ -316,7 +325,7 @@ function clearAll(isClearButtonPressed) {
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     }
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < colorBoxesNumber; i++) {
         document.getElementById(`cb${i}`).style = "background-color: transparent";
         document.getElementById(`cb${i}`).innerHTML = null;
     }
@@ -350,7 +359,7 @@ function getSnpList(snpString) {
         if (mode === DISPERSION_MODE) {
             maxLength = 1;
         } else if (mode === LEVELS_MODE) {
-            maxLength = 10;
+            maxLength = colorBoxesNumber;
         } else if (mode === CORRELATION_ALL_MODE || mode === CORRELATION_INTERSECT_MODE) {
             maxLength = 50;
         } 
@@ -420,7 +429,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
     }
     if (data !== undefined) {
         let snpCombinationsList = getSnpCombinationsList(data);
-        if (snpCombinationsList.length <= 10) {
+        if (snpCombinationsList.length <= colorBoxesNumber) {
             let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
             for (const [i, pointGroup] of pointGroupsList.entries()) {
                 let gradient = getGradient(i);
@@ -433,7 +442,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
             }
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
         } else {
-            let tooMuchDispersionGroupsErrorText = "Error: Selected SNP has more than the maximum allowed (10) number of dispersion groups :(";
+            let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
             throw tooMuchDispersionGroupsErrorText;
         }
