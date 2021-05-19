@@ -279,7 +279,7 @@ async function drawMap(isDispersion, snpString) {
 
     let snpList = getSnpList(snpString);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
-    drawLayers(snpList, threshold, isDispersion);
+    drawLayers(snpList, threshold);
 }
 
 async function setCheckboxState() {
@@ -316,6 +316,18 @@ function changeIntensity(intensity) {
 function addNewLayer(gradient, threshold, data, heatmapCfg) {
     heatmapCfg["gradient"] = gradient;
     let newLayer = new HeatmapOverlay(heatmapCfg);
+    if (mode === Modes.DISPERSION_MODE) {
+        let newData = [];
+        data.forEach(element => {
+            newData.push({
+                "count": 1,
+                "lat": element["lat"],
+                "lng": element["lng"],
+                "snpsList": element["snpsList"]
+            });
+        });
+        data = newData;
+    }
     newLayer.setData({
         max: threshold,
         data: data,
@@ -376,7 +388,7 @@ function getSnpList(snpString) {
     }
 }
 
-async function drawLayers(snpList, threshold, isDispersion) {
+async function drawLayers(snpList, threshold) {
     let heatmapCfg = {
         blur: 0.85,
         minOpacity: 0.1,
@@ -388,9 +400,9 @@ async function drawLayers(snpList, threshold, isDispersion) {
     };
 
     if (snpList !== undefined) {
-        if (isDispersion) {
+        if (mode === Modes.DISPERSION_MODE) {
             await drawDispersionLayers(heatmapCfg, snpList, threshold);
-        } else {
+        } else if (mode === Modes.LEVELS_MODE) {
             await drawLevelsLayers(heatmapCfg, snpList, threshold);
         }
     }
@@ -573,7 +585,7 @@ async function printCorrelation(isAll, snpString) {
             }
         }
 
-        let correlationMatrix = getCorrelationMatrix(allSnpPointsList, isAll);
+        let correlationMatrix = getCorrelationMatrix(allSnpPointsList);
 
         let successSnpList = snpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
@@ -590,26 +602,26 @@ async function printCorrelation(isAll, snpString) {
     }
 }
 
-function getCorrelationMatrix(allSnpPointsList, isAll) {
+function getCorrelationMatrix(allSnpPointsList) {
     let correlationMatrix = [];
     allSnpPointsList.forEach(function (firstSnpPointsList, firstSnpIndex) {
         let firstSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, firstSnpIndex, firstSnpPointsList);
 
-        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict, isAll);
+        let correlationRow = getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict);
         correlationMatrix.push(correlationRow);
     });
     return correlationMatrix;
 }
 
-function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict, isAll) {
+function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict) {
     let correlationRow = [];
     allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
         let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
         let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
         let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
-        if (isAll) {
+        if (mode === Modes.CORRELATION_ALL_MODE) {
             getCorrelationAllRow(correlationRow, diversityLevelList);
-        } else {
+        } else if (mode === Modes.CORRELATION_INTERSECT_MODE) {
             getCorrelationIntersectedRow(diversityLevelList, correlationRow);
         }
     });
