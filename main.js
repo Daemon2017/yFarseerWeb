@@ -160,10 +160,12 @@ let baseLayer;
 let dbSnpsList = [];
 let mode;
 
-const LEVELS_MODE = "levels";
-const DISPERSION_MODE = "dispersion";
-const CORRELATION_ALL_MODE = "correlationAll";
-const CORRELATION_INTERSECT_MODE = "correlationIntersect";
+const Modes = Object.freeze({
+    LEVELS_MODE: String("levels"),
+    DISPERSION_MODE: String("dispersion"),
+    CORRELATION_ALL_MODE: String("correlationAll"),
+    CORRELATION_INTERSECT_MODE: String("correlationIntersect")
+});
 
 async function main() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
@@ -250,13 +252,13 @@ function attachDropDownPrompt() {
 }
 
 function selectAction(snpString) {
-    if (mode === LEVELS_MODE) {
+    if (mode === Modes.LEVELS_MODE) {
         drawMap(false, snpString);
-    } else if (mode === DISPERSION_MODE) {
+    } else if (mode === Modes.DISPERSION_MODE) {
         drawMap(true, snpString);
-    } else if (mode === CORRELATION_INTERSECT_MODE) {
+    } else if (mode === Modes.CORRELATION_INTERSECT_MODE) {
         printCorrelation(false, snpString);
-    } else if (mode === CORRELATION_ALL_MODE) {
+    } else if (mode === Modes.CORRELATION_ALL_MODE) {
         printCorrelation(true, snpString);
     }
 }
@@ -265,9 +267,9 @@ async function drawMap(isDispersion, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isDispersion === true) {
-        mode = DISPERSION_MODE;
+        mode = Modes.DISPERSION_MODE;
     } else {
-        mode = LEVELS_MODE;
+        mode = Modes.LEVELS_MODE;
     }
 
     clearAll(false);
@@ -356,11 +358,11 @@ function getSnpList(snpString) {
         document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
 
         let maxLength;
-        if (mode === DISPERSION_MODE) {
+        if (mode === Modes.DISPERSION_MODE) {
             maxLength = 1;
-        } else if (mode === LEVELS_MODE) {
+        } else if (mode === Modes.LEVELS_MODE) {
             maxLength = colorBoxesNumber;
-        } else if (mode === CORRELATION_ALL_MODE || mode === CORRELATION_INTERSECT_MODE) {
+        } else if (mode === Modes.CORRELATION_ALL_MODE || mode === Modes.CORRELATION_INTERSECT_MODE) {
             maxLength = 50;
         } 
 
@@ -548,9 +550,9 @@ async function printCorrelation(isAll, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isAll) {
-        mode = CORRELATION_ALL_MODE;
+        mode = Modes.CORRELATION_ALL_MODE;
     } else {
-        mode = CORRELATION_INTERSECT_MODE;
+        mode = Modes.CORRELATION_INTERSECT_MODE;
     }
 
     clearAll(false);
