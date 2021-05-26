@@ -1,138 +1,3 @@
-const GRADIENT_KEYS = [
-    ".10",
-    ".20",
-    ".30",
-    ".40",
-    ".50",
-    ".60",
-    ".70",
-    ".80",
-    ".90",
-    "1.",
-];
-const GRADIENT_VALUES = [
-    [
-        "#F9EBEA",
-        "#F2D7D5",
-        "#E6B0AA",
-        "#D98880",
-        "#CD6155",
-        "#C0392B",
-        "#A93226",
-        "#922B21",
-        "#7B241C",
-        "#641E16",
-    ],
-    [
-        "#F4ECF7",
-        "#E8DAEF",
-        "#D2B4DE",
-        "#BB8FCE",
-        "#A569BD",
-        "#8E44AD",
-        "#7D3C98",
-        "#6C3483",
-        "#5B2C6F",
-        "#4A235A",
-    ],
-    [
-        "#EAF2F8",
-        "#D4E6F1",
-        "#A9CCE3",
-        "#7FB3D5",
-        "#5499C7",
-        "#2980B9",
-        "#2471A3",
-        "#1F618D",
-        "#1A5276",
-        "#154360",
-    ],
-    [
-        "#E8F6F3",
-        "#D0ECE7",
-        "#A2D9CE",
-        "#73C6B6",
-        "#45B39D",
-        "#16A085",
-        "#138D75",
-        "#117A65",
-        "#0E6655",
-        "#0B5345",
-    ],
-    [
-        "#E9F7EF",
-        "#D4EFDF",
-        "#A9DFBF",
-        "#7DCEA0",
-        "#52BE80",
-        "#27AE60",
-        "#229954",
-        "#1E8449",
-        "#196F3D",
-        "#145A32",
-    ],
-    [
-        "#FEF5E7",
-        "#FDEBD0",
-        "#FAD7A0",
-        "#F8C471",
-        "#F5B041",
-        "#F39C12",
-        "#D68910",
-        "#B9770E",
-        "#9C640C",
-        "#7E5109",
-    ],
-    [
-        "#FBEEE6",
-        "#F6DDCC",
-        "#EDBB99",
-        "#E59866",
-        "#DC7633",
-        "#D35400",
-        "#BA4A00",
-        "#A04000",
-        "#873600",
-        "#6E2C00",
-    ],
-    [
-        "#F8F9F9",
-        "#F2F3F4",
-        "#E5E7E9",
-        "#D7DBDD",
-        "#CACFD2",
-        "#BDC3C7",
-        "#A6ACAF",
-        "#909497",
-        "#797D7F",
-        "#626567",
-    ],
-    [
-        "#F2F4F4",
-        "#E5E8E8",
-        "#CCD1D1",
-        "#B2BABB",
-        "#99A3A4",
-        "#7F8C8D",
-        "#707B7C",
-        "#616A6B",
-        "#515A5A",
-        "#424949",
-    ],
-    [
-        "#EAECEE",
-        "#D5D8DC",
-        "#ABB2B9",
-        "#808B96",
-        "#566573",
-        "#2C3E50",
-        "#273746",
-        "#212F3D",
-        "#1C2833",
-        "#17202A",
-    ],
-];
-
 const LAT_URL_PARAM = "lat";
 const LNG_URL_PARAM = "lng";
 const ZOOM_URL_PARAM = "zoom";
@@ -153,12 +18,13 @@ const BOXES_ELEMENT_ID = "boxes";
 const BUSY_STATE_TEXT = "Busy...";
 const OK_STATE_TEXT = "OK.";
 
-const colorBoxesNumber = 10;
+const colorBoxesNumber = 20;
 
 let map;
 let baseLayer;
 let dbSnpsList = [];
 let mode;
+let gradientValues = [];
 
 const Modes = Object.freeze({
     LEVELS_MODE: String("levels"),
@@ -169,6 +35,8 @@ const Modes = Object.freeze({
 
 async function main() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+
+    gradientValues = createGradientList();
 
     let colorBoxesInnerHtml =  ``;
     for (let i = 0; i < colorBoxesNumber; i++) {
@@ -209,6 +77,44 @@ async function main() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 
     selectAction(snpString);
+}
+
+function createGradientList() {
+    let lastColorList = [
+        "#e6194B", 
+        "#3cb44b", 
+        "#ffe119", 
+        "#4363d8", 
+        "#f58231", 
+        "#911eb4", 
+        "#42d4f4", 
+        "#f032e6", 
+        "#bfef45", 
+        "#fabed4", 
+        "#469990", 
+        "#dcbeff", 
+        "#9A6324", 
+        "#fffac8", 
+        "#800000", 
+        "#aaffc3", 
+        "#808000", 
+        "#ffd8b1", 
+        "#000075", 
+        "#a9a9a9"
+    ];
+    let gradientList = [];
+    for (let i = 0; i < colorBoxesNumber; i++) {
+        let numberOfItems = 10;
+        let rainbow = new Rainbow();
+        rainbow.setNumberRange(1, numberOfItems);
+        rainbow.setSpectrum("#FFFFFF", lastColorList[i]);
+        let gradient = [];
+        for (let j = 1; j <= numberOfItems; j++) {
+            gradient.push("#" + rainbow.colourAt(j));
+        }
+        gradientList.push(gradient);
+    }
+    return gradientList;
 }
 
 function attachDropDownPrompt() {
@@ -423,7 +329,7 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
         if (data !== undefined) {
             let gradient = getGradient(i);
             addNewLayer(gradient, threshold, data, heatmapCfg);
-            document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][6]}`;
+            document.getElementById(`cb${i}`).style = `background-color:${gradientValues[i][6]}`;
             document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snp}</span>`;
             i++;
         }
@@ -448,7 +354,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
             for (const [i, pointGroup] of pointGroupsList.entries()) {
                 let gradient = getGradient(i);
                 addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
-                document.getElementById(`cb${i}`).style = `background-color:${GRADIENT_VALUES[i][6]}`;
+                document.getElementById(`cb${i}`).style = `background-color:${gradientValues[i][6]}`;
             }
             for (const [i, snpCombination] of snpCombinationsList.entries()) {
                 let snpCombinationText = snpCombination.join(",");
@@ -464,9 +370,21 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
 }
 
 function getGradient(i) {
+    let gradientKeys = [
+        ".10",
+        ".20",
+        ".30",
+        ".40",
+        ".50",
+        ".60",
+        ".70",
+        ".80",
+        ".90",
+        "1.",
+    ];
     let gradient = [];
-    GRADIENT_KEYS.forEach(function (_key, j) {
-        gradient[GRADIENT_KEYS[j]] = GRADIENT_VALUES[i][j];
+    gradientKeys.forEach(function (_key, j) {
+        gradient[gradientKeys[j]] = gradientValues[i][j];
     });
     return gradient;
 }
@@ -592,8 +510,8 @@ async function printCorrelation(isAll, snpString) {
         });
         if (successSnpList.length > 0) {
             document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = getHtmlTable(correlationMatrix, successSnpList);
-            $('table').tablesort();
-            $('thead th.amount').data('sortBy', function (_th, td, _tablesort) {
+            $("table").tablesort();
+            $("thead th.amount").data("sortBy", function (_th, td, _tablesort) {
                 return parseFloat(td.text());
             });
         }
