@@ -26,27 +26,13 @@ body * {
 #extendedCheckbox,
 #toggle-button,
 #getLinkButton,
-#dispersionButton,
-#cb0,
-#cb1,
-#cb2,
-#cb3,
-#cb4,
-#cb5,
-#cb6,
-#cb7,
-#cb8,
-#cb9,
-#cb10,
-#cb11,
-#cb12,
-#cb13,
-#cb14,
-#cb15,
-#cb16,
-#cb17,
-#cb18,
-#cb19 {
+#dispersionButton {
+    pointer-events: auto;
+}
+
+.checkBoxLabel,
+.colorBox,
+.checkBox {
     pointer-events: auto;
 }
 
@@ -54,15 +40,6 @@ body * {
     max-height: 200px;
     overflow-y: scroll;
     overflow-x: hidden;
-}
-
-.box {
-    margin-top: 5px;
-    margin-left: 1px;
-    float: left;
-    width: 10px;
-    height: 10px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .toggle-button {
@@ -118,7 +95,8 @@ body * {
     display: inline-block;
 }
 
-.tooltip .tooltiptext {
+.tooltip 
+.tooltiptext {
     visibility: hidden;
     width: 120px;
     background-color: #555;
@@ -137,7 +115,8 @@ body * {
     transition: opacity 0.3s;
 }
 
-.tooltip .tooltiptext::after {
+.tooltip 
+.tooltiptext::after {
     content: "";
     position: absolute;
     bottom: 100%;
@@ -148,7 +127,34 @@ body * {
     border-color: #555 transparent transparent transparent;
 }
 
-.tooltip:hover .tooltiptext {
+.tooltip:hover 
+.tooltiptext {
     visibility: visible;
     opacity: 1;
+}
+
+.checkBoxLabel{
+    box-sizing: border-box;
+    display: inline-block;
+    margin-top: 0px;
+    margin-left: 1px;
+    width: 12px;
+    height: 12px;
+    border: 1px solid white;   
+    opacity: 50%; 
+}
+
+#boxes input[type=checkbox]{
+    display: none;
+}
+
+#boxes input[type=checkbox]:checked + .checkBoxLabel{
+    box-sizing: border-box;
+    display: inline-block;
+    margin-top: 0px;
+    margin-left: 1px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid black;   
+    opacity: 100%; 
 }

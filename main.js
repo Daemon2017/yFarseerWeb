@@ -40,7 +40,11 @@ async function main() {
 
     let colorBoxesInnerHtml =  ``;
     for (let i = 0; i < colorBoxesNumber; i++) {
-        colorBoxesInnerHtml += `<div class="box tooltip" id="cb${i}"></div>`;
+        colorBoxesInnerHtml += 
+        `<span class="colorBox tooltip" id="colorBox${i}">
+            <input type="checkbox" class="checkBox" id="checkBox${i}"/>
+            <label class="checkBoxLabel" id="checkBoxLabel${i}" for="checkBox${i}"></label>
+        </span>`;
     }
     document.getElementById(BOXES_ELEMENT_ID).innerHTML = colorBoxesInnerHtml;
 
@@ -246,8 +250,9 @@ function clearAll(isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     }
     for (let i = 0; i < colorBoxesNumber; i++) {
-        document.getElementById(`cb${i}`).style = "background-color: transparent";
-        document.getElementById(`cb${i}`).innerHTML = null;
+        document.getElementById(`checkBoxLabel${i}`).style = "background-color: transparent";
+        document.getElementById(`checkBoxLabel${i}`).innerHTML = null;
+        document.getElementById(`checkBox${i}`).checked = false;
     }
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
     map.eachLayer(function (layer) {
@@ -329,8 +334,9 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
         if (data !== undefined) {
             let gradient = getGradient(i);
             addNewLayer(gradient, threshold, data, heatmapCfg);
-            document.getElementById(`cb${i}`).style = `background-color:${gradientValues[i][6]}`;
-            document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snp}</span>`;
+            document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+            document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext">${snp}</span>`;
+            document.getElementById(`checkBox${i}`).checked = true;
             i++;
         }
     }
@@ -354,11 +360,12 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
             for (const [i, pointGroup] of pointGroupsList.entries()) {
                 let gradient = getGradient(i);
                 addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
-                document.getElementById(`cb${i}`).style = `background-color:${gradientValues[i][6]}`;
+                document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+                document.getElementById(`checkBox${i}`).checked = true;
             }
             for (const [i, snpCombination] of snpCombinationsList.entries()) {
                 let snpCombinationText = snpCombination.join(",");
-                document.getElementById(`cb${i}`).innerHTML = `<span class="tooltiptext">${snpCombinationText}</span>`;
+                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext">${snpCombinationText}</span>`;
             }
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
         } else {
