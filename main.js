@@ -333,14 +333,16 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
         } catch (e) {
             errorSnpList.push(snp);
         }
-        if (data !== undefined && !uncheckedSnpsList.includes(i)) {
-            let gradient = getGradient(i);
-            addNewLayer(gradient, threshold, data, heatmapCfg); 
-            document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-            document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snp}</span>`;
-            document.getElementById(`checkBox${i}`).checked = true;
-            i++;
+        if (data !== undefined) {
+            if (!uncheckedSnpsList.includes(i)) {
+                let gradient = getGradient(i);
+                addNewLayer(gradient, threshold, data, heatmapCfg);
+                document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+                document.getElementById(`checkBox${i}`).checked = true;
+                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snp}</span>`;
+            }
         }
+        i++;
     }
     printSnpReceivingState(errorSnpList, snpList);
 }
