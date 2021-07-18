@@ -66,25 +66,25 @@
         </label>
         <label for="extendedCheckbox" id="checkboxLabel">
             Extended:
-            <input type="checkbox" id="extendedCheckbox" class="toggle-button" onclick="setCheckboxState()" />
+            <input type="checkbox" id="extendedCheckbox" class="toggle-button" onclick="updateExtendedState()" />
         </label>
         <label for="intensitySlider" id="intensityLabel">
             Intensity:
-            <input type="range" id="intensitySlider" oninput="changeIntensity(this.value)" min="0" max="10" value="5"
+            <input type="range" id="intensitySlider" oninput="updateIntensity(this.value)" min="0" max="10" value="5"
                 class="slider" />
         </label>
 
         <br />
-        <button type="submit" id="levelsButton" onclick="drawMap(false, null)">
+        <button type="submit" id="levelsButton" onclick="showMap(false, null)">
             Levels
         </button>
-        <button type="submit" id="dispersionButton" onclick="drawMap(true, null)">
+        <button type="submit" id="dispersionButton" onclick="showMap(true, null)">
             Dispersion
         </button>
-        <button type="submit" id="correlAllButton" onclick="printCorrelation(true, null)">
+        <button type="submit" id="correlAllButton" onclick="showCorrelation(true, null)">
             CorrelationAll
         </button>
-        <button type="submit" id="correlIntersectButton" onclick="printCorrelation(false, null)">
+        <button type="submit" id="correlIntersectButton" onclick="showCorrelation(false, null)">
             CorrelationIntersect
         </button>
         <button type="submit" id="clearButton" onclick="clearAll(true)">

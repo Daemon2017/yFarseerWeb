@@ -25,6 +25,8 @@ let baseLayer;
 let dbSnpsList = [];
 let mode;
 let gradientValues = [];
+let uncheckedSnpsList = [];
+let snpList = [];
 
 const Modes = Object.freeze({
     LEVELS_MODE: String("levels"),
@@ -42,7 +44,7 @@ async function main() {
     for (let i = 0; i < colorBoxesNumber; i++) {
         colorBoxesInnerHtml += 
         `<span class="colorBox tooltip" id="colorBox${i}">
-            <input type="checkbox" class="checkBox" id="checkBox${i}"/>
+            <input type="checkbox" class="checkBox" id="checkBox${i}" onclick="updateUncheckedList(${i})"/>
             <label class="checkBoxLabel" id="checkBoxLabel${i}" for="checkBox${i}"></label>
         </span>`;
     }
@@ -163,17 +165,17 @@ function attachDropDownPrompt() {
 
 function selectAction(snpString) {
     if (mode === Modes.LEVELS_MODE) {
-        drawMap(false, snpString);
+        showMap(false, snpString);
     } else if (mode === Modes.DISPERSION_MODE) {
-        drawMap(true, snpString);
+        showMap(true, snpString);
     } else if (mode === Modes.CORRELATION_INTERSECT_MODE) {
-        printCorrelation(false, snpString);
+        showCorrelation(false, snpString);
     } else if (mode === Modes.CORRELATION_ALL_MODE) {
-        printCorrelation(true, snpString);
+        showCorrelation(true, snpString);
     }
 }
 
-async function drawMap(isDispersion, snpString) {
+async function showMap(isDispersion, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isDispersion === true) {
@@ -187,40 +189,31 @@ async function drawMap(isDispersion, snpString) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
-    let snpList = getSnpList(snpString);
+    snpList = getSnpList(snpString);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(snpList, threshold);
 }
 
-async function setCheckboxState() {
+async function updateExtendedState() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
     dbSnpsList = await getDocFromDb("list");
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
-function changeIntensity(intensity) {
+function updateIntensity(intensity) {
     let threshold = 10 - intensity;
+    clearMap();
+    drawLayers(snpList, threshold);
+}
 
-    map.eachLayer(function (oldLayer) {
-        if (oldLayer !== baseLayer) {
-            let data = [];
-            oldLayer._data.forEach(d => {
-                let point = {
-                    lat: d.latlng.lat,
-                    lng: d.latlng.lng,
-                    count: d.count
-                };
-                data.push(point);
-            });
-
-            let gradient = oldLayer._heatmap._config.gradient;
-            let heatmapCfg = oldLayer._heatmap._config;
-
-            addNewLayer(gradient, threshold, data, heatmapCfg);
-
-            map.removeLayer(oldLayer);
-        }
-    });
+function updateUncheckedList(i){
+    if (document.getElementById(`checkBox${i}`).checked === true) {
+        uncheckedSnpsList = uncheckedSnpsList.filter(item => item !== i);
+    } else {
+        uncheckedSnpsList.push(i);
+    }
+    clearMap();
+    drawLayers(snpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
 }
 
 function addNewLayer(gradient, threshold, data, heatmapCfg) {
@@ -254,6 +247,7 @@ function clearAll(isClearButtonPressed) {
         document.getElementById(`checkBoxLabel${i}`).innerHTML = null;
         document.getElementById(`checkBox${i}`).checked = false;
     }
+    uncheckedSnpsList = [];
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
     map.eachLayer(function (layer) {
         if (layer !== baseLayer) {
@@ -263,6 +257,14 @@ function clearAll(isClearButtonPressed) {
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
+}
+
+function clearMap(){
+    map.eachLayer(function (layer) {
+        if (layer !== baseLayer) {
+            map.removeLayer(layer);
+        }
+    });
 }
 
 function getSnpList(snpString) {
@@ -331,11 +333,11 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
         } catch (e) {
             errorSnpList.push(snp);
         }
-        if (data !== undefined) {
+        if (data !== undefined && !uncheckedSnpsList.includes(i)) {
             let gradient = getGradient(i);
-            addNewLayer(gradient, threshold, data, heatmapCfg);
+            addNewLayer(gradient, threshold, data, heatmapCfg); 
             document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-            document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext">${snp}</span>`;
+            document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snp}</span>`;
             document.getElementById(`checkBox${i}`).checked = true;
             i++;
         }
@@ -358,14 +360,18 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
         if (snpCombinationsList.length <= colorBoxesNumber) {
             let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
             for (const [i, pointGroup] of pointGroupsList.entries()) {
-                let gradient = getGradient(i);
-                addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
-                document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-                document.getElementById(`checkBox${i}`).checked = true;
+                if (!uncheckedSnpsList.includes(i)) {
+                    let gradient = getGradient(i);
+                    addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
+                    document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+                    document.getElementById(`checkBox${i}`).checked = true;
+                }
             }
             for (const [i, snpCombination] of snpCombinationsList.entries()) {
-                let snpCombinationText = snpCombination.join(",");
-                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext">${snpCombinationText}</span>`;
+                if (!uncheckedSnpsList.includes(i)) {
+                    let snpCombinationText = snpCombination.join(",");
+                    document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpCombinationText}</span>`;
+                }
             }
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
         } else {
@@ -483,7 +489,7 @@ function getArrayMax(myArray, n, property) {
     }));
 }
 
-async function printCorrelation(isAll, snpString) {
+async function showCorrelation(isAll, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isAll) {
