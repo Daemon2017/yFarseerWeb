@@ -26,7 +26,7 @@ let dbSnpsList = [];
 let mode;
 let gradientValues = [];
 let uncheckedSnpsList = [];
-let snpList = [];
+let currentSnpList = [];
 
 const Modes = Object.freeze({
     LEVELS_MODE: String("levels"),
@@ -189,9 +189,9 @@ async function showMap(isDispersion, snpString) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
-    snpList = getSnpList(snpString);
+    currentSnpList = getSnpList(snpString);
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
-    drawLayers(snpList, threshold);
+    drawLayers(currentSnpList, threshold);
 }
 
 async function updateExtendedState() {
@@ -203,7 +203,7 @@ async function updateExtendedState() {
 function updateIntensity(intensity) {
     let threshold = 10 - intensity;
     clearMap();
-    drawLayers(snpList, threshold);
+    drawLayers(currentSnpList, threshold);
 }
 
 function updateUncheckedList(i){
@@ -213,7 +213,7 @@ function updateUncheckedList(i){
         uncheckedSnpsList.push(i);
     }
     clearMap();
-    drawLayers(snpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
+    drawLayers(currentSnpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
 }
 
 function addNewLayer(gradient, threshold, data, heatmapCfg) {
@@ -249,11 +249,7 @@ function clearAll(isClearButtonPressed) {
     }
     uncheckedSnpsList = [];
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
-    map.eachLayer(function (layer) {
-        if (layer !== baseLayer) {
-            map.removeLayer(layer);
-        }
-    });
+    clearMap();
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
