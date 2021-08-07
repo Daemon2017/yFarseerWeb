@@ -214,6 +214,17 @@ function updateUncheckedList(i){
     drawLayers(currentSnpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
 }
 
+function getMapWithNewLayerAndCheckbox(i, newMap, threshold, data, heatmapCfg, tooltipText) {
+    if (!uncheckedSnpsList.includes(i)) {
+        let gradient = getGradient(i);
+        newMap = getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap);
+        document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+        document.getElementById(`checkBox${i}`).checked = true;
+        document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${tooltipText}</span>`;
+    }
+    return newMap;
+}
+
 function getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap) {
     heatmapCfg["gradient"] = gradient;
     let newLayer = new HeatmapOverlay(heatmapCfg);
@@ -335,13 +346,7 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
             errorSnpList.push(snpList[i]);
         }
         if (data !== undefined) {
-            if (!uncheckedSnpsList.includes(i)) {
-                let gradient = getGradient(i);
-                newMap = getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap);
-                document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-                document.getElementById(`checkBox${i}`).checked = true;
-                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpList[i]}</span>`;
-            }
+            newMap = getMapWithNewLayerAndCheckbox(i, newMap, threshold, data, heatmapCfg, snpList[i]);
         }
     }
     map = newMap;
@@ -364,13 +369,7 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
             let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
             let newMap = getCleanMap();
             for (let i = 0; i < snpCombinationsList.length; i++) {
-                if (!uncheckedSnpsList.includes(i)) {
-                    let gradient = getGradient(i);
-                    newMap = getMapWithNewLayer(gradient, threshold, pointGroupsList[i], heatmapCfg, newMap);
-                    document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-                    document.getElementById(`checkBox${i}`).checked = true;
-                    document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpCombinationsList[i].join(",")}</span>`;
-                }
+                newMap = getMapWithNewLayerAndCheckbox(i, newMap, threshold, pointGroupsList[i], heatmapCfg, snpCombinationsList[i].join(","));
             }
             map = newMap;
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
