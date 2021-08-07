@@ -202,7 +202,6 @@ async function updateExtendedState() {
 
 function updateIntensity(intensity) {
     let threshold = 10 - intensity;
-    clearMap();
     drawLayers(currentSnpList, threshold);
 }
 
@@ -212,11 +211,10 @@ function updateUncheckedList(i){
     } else {
         uncheckedSnpsList.push(i);
     }
-    clearMap();
     drawLayers(currentSnpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
 }
 
-function addNewLayer(gradient, threshold, data, heatmapCfg) {
+function getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap) {
     heatmapCfg["gradient"] = gradient;
     let newLayer = new HeatmapOverlay(heatmapCfg);
     if (mode === Modes.DISPERSION_MODE) {
@@ -235,7 +233,8 @@ function addNewLayer(gradient, threshold, data, heatmapCfg) {
         max: threshold,
         data: data,
     });
-    map.addLayer(newLayer);
+    newMap.addLayer(newLayer);
+    return newMap;
 }
 
 function clearAll(isClearButtonPressed) {
@@ -255,12 +254,18 @@ function clearAll(isClearButtonPressed) {
     }
 }
 
-function clearMap(){
-    map.eachLayer(function (layer) {
+function clearMap() {
+    map = getCleanMap();
+}
+
+function getCleanMap() {
+    let newMap = map;
+    newMap.eachLayer(function (layer) {
         if (layer !== baseLayer) {
-            map.removeLayer(layer);
+            newMap.removeLayer(layer);
         }
     });
+    return newMap;
 }
 
 function getSnpList(snpString) {
@@ -320,26 +325,26 @@ async function drawLayers(snpList, threshold) {
 async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
     heatmapCfg["radius"] = 3;
     heatmapCfg["maxOpacity"] = 0.9;
-    let i = 0;
     let errorSnpList = [];
-    for (const snp of snpList) {
+    let newMap = getCleanMap();
+    for (let i = 0; i < snpList.length; i++) {
         let data;
         try {
-            data = await getDocFromDb(snp);
+            data = await getDocFromDb(snpList[i]);
         } catch (e) {
-            errorSnpList.push(snp);
+            errorSnpList.push(snpList[i]);
         }
         if (data !== undefined) {
             if (!uncheckedSnpsList.includes(i)) {
                 let gradient = getGradient(i);
-                addNewLayer(gradient, threshold, data, heatmapCfg);
+                newMap = getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap);
                 document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
                 document.getElementById(`checkBox${i}`).checked = true;
-                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snp}</span>`;
+                document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpList[i]}</span>`;
             }
         }
-        i++;
     }
+    map = newMap;
     printSnpReceivingState(errorSnpList, snpList);
 }
 
@@ -357,20 +362,17 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
         let snpCombinationsList = getSnpCombinationsList(data);
         if (snpCombinationsList.length <= colorBoxesNumber) {
             let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
-            for (const [i, pointGroup] of pointGroupsList.entries()) {
+            let newMap = getCleanMap();
+            for (let i = 0; i < snpCombinationsList.length; i++) {
                 if (!uncheckedSnpsList.includes(i)) {
                     let gradient = getGradient(i);
-                    addNewLayer(gradient, threshold, pointGroup, heatmapCfg);
+                    newMap = getMapWithNewLayer(gradient, threshold, pointGroupsList[i], heatmapCfg, newMap);
                     document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
                     document.getElementById(`checkBox${i}`).checked = true;
+                    document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpCombinationsList[i].join(",")}</span>`;
                 }
             }
-            for (const [i, snpCombination] of snpCombinationsList.entries()) {
-                if (!uncheckedSnpsList.includes(i)) {
-                    let snpCombinationText = snpCombination.join(",");
-                    document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${snpCombinationText}</span>`;
-                }
-            }
+            map = newMap;
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
         } else {
             let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
