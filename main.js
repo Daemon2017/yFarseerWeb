@@ -291,43 +291,53 @@ async function drawLayers(snpList, threshold) {
     if (snpList !== undefined) {
         let errorSnpList = [];
         let dataList = [];
-        for (let i = 0; i < snpList.length; i++) {
+        for (const snp of snpList) {
             try {
-                let data = await getDocFromDb(snpList[i]);
+                let data = await getDocFromDb(snp);
                 dataList.push(data);
             } catch (e) {
-                errorSnpList.push(snpList[i]);
+                errorSnpList.push(snp);
             }
         }
         let newMap = getCleanMap();
         for (let i = 0; i < snpList.length; i++) {
             if (dataList[i] !== undefined) {
                 if (mode === Modes.DISPERSION_MODE) {
-                    let snpCombinationsList = getSnpCombinationsList(dataList[i]);
-                    if (snpCombinationsList.length <= colorBoxesNumber) {
-                        let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
-                        for (let j = 0; j < snpCombinationsList.length; j++) {
-                            if (!uncheckedSnpsList.includes(i)) {
-                                newMap = getMapWithNewLayer(heatmapCfg, j, pointGroupsList[j], threshold, newMap);                    
-                                updateCheckbox(j, snpCombinationsList[j].join(","));
-                            }
-                        }
-                    } else {
-                        let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
-                        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
-                        throw tooMuchDispersionGroupsErrorText;
-                    }
+                    newMap = drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold);
                 } else if (mode === Modes.LEVELS_MODE) {
-                    if (!uncheckedSnpsList.includes(i)) {
-                        newMap = getMapWithNewLayer(heatmapCfg, i, dataList[i], threshold, newMap);                    
-                        updateCheckbox(i, snpList[i]);
-                    }
+                    newMap = drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, snpList);
                 }
             }
         }
         map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
     }
+}
+
+function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
+    let snpCombinationsList = getSnpCombinationsList(dataList[i]);
+    if (snpCombinationsList.length <= colorBoxesNumber) {
+        let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
+        for (let j = 0; j < snpCombinationsList.length; j++) {
+            if (!uncheckedSnpsList.includes(i)) {
+                newMap = getMapWithNewLayer(heatmapCfg, j, pointGroupsList[j], threshold, newMap);
+                updateCheckbox(j, snpCombinationsList[j].join(","));
+            }
+        }
+    } else {
+        let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
+        throw tooMuchDispersionGroupsErrorText;
+    }
+    return newMap;
+}
+
+function drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, snpList) {
+    if (!uncheckedSnpsList.includes(i)) {
+        newMap = getMapWithNewLayer(heatmapCfg, i, dataList[i], threshold, newMap);
+        updateCheckbox(i, snpList[i]);
+    }
+    return newMap;
 }
 
 function getMapWithNewLayer(heatmapCfg, i, data, threshold, newMap) {
