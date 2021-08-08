@@ -322,7 +322,7 @@ function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
     if (snpCombinationsList.length <= colorBoxesNumber) {
         let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
         for (let j = 0; j < snpCombinationsList.length; j++) {
-            if (!uncheckedSnpsList.includes(i)) {
+            if (!uncheckedSnpsList.includes(j)) {
                 newMap = getMapWithNewLayer(heatmapCfg, j, pointGroupsList[j], threshold, newMap);
                 updateCheckbox(j, snpCombinationsList[j].join(","));
             }
