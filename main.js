@@ -337,16 +337,19 @@ async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
     heatmapCfg["radius"] = 3;
     heatmapCfg["maxOpacity"] = 0.9;
     let errorSnpList = [];
-    let newMap = getCleanMap();
+    let dataList = [];
     for (let i = 0; i < snpList.length; i++) {
-        let data;
         try {
-            data = await getDocFromDb(snpList[i]);
+            let data = await getDocFromDb(snpList[i]);
+            dataList.push(data);
         } catch (e) {
             errorSnpList.push(snpList[i]);
         }
-        if (data !== undefined) {
-            newMap = getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, data, heatmapCfg, snpList[i]);
+    }
+    let newMap = getCleanMap();
+    for (let i = 0; i < snpList.length; i++) {
+        if (dataList[i] !== undefined) {
+            newMap = getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, dataList[i], heatmapCfg, snpList[i]);
         }
     }
     map = newMap;
@@ -357,18 +360,21 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
     heatmapCfg["radius"] = 2;
     heatmapCfg["maxOpacity"] = 0.5;
     let errorSnpList = [];
+    let dataList = [];
     for (let i = 0; i < snpList.length; i++) {
-        let data;
         try {
-            data = await getDocFromDb(snpList[i]);
+            let data = await getDocFromDb(snpList[i]);
+            dataList.push(data);
         } catch (e) {
             errorSnpList.push(snpList[i]);
         }
-        let newMap = getCleanMap();
-        if (data !== undefined) {
-            let snpCombinationsList = getSnpCombinationsList(data);
+    }
+    let newMap = getCleanMap();
+    for (let i = 0; i < snpList.length; i++) {
+        if (dataList[i] !== undefined) {
+            let snpCombinationsList = getSnpCombinationsList(dataList[i]);
             if (snpCombinationsList.length <= colorBoxesNumber) {
-                let pointGroupsList = getPointGroupsList(snpCombinationsList, data);
+                let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
                 for (let j = 0; j < snpCombinationsList.length; j++) {
                     newMap = getMapWithNewLayerAndUpdateCheckbox(j, newMap, threshold, pointGroupsList[j], heatmapCfg, snpCombinationsList[j].join(","));
                 }
@@ -378,8 +384,8 @@ async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
                 throw tooMuchDispersionGroupsErrorText;
             }
         }
-        map = newMap;
     }
+    map = newMap;
     printSnpReceivingState(errorSnpList, snpList);
 }
 
