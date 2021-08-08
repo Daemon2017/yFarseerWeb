@@ -299,13 +299,16 @@ async function drawLayers(snpList, threshold) {
                 errorSnpList.push(snp);
             }
         }
+        let finalSnpList = snpList.filter(function (item) {
+            return errorSnpList.indexOf(item) < 0;
+        });
         let newMap = getCleanMap();
-        for (let i = 0; i < snpList.length; i++) {
+        for (let i = 0; i < finalSnpList.length; i++) {
             if (dataList[i] !== undefined) {
                 if (mode === Modes.DISPERSION_MODE) {
                     newMap = drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold);
                 } else if (mode === Modes.LEVELS_MODE) {
-                    newMap = drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, snpList);
+                    newMap = drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, finalSnpList);
                 }
             }
         }
