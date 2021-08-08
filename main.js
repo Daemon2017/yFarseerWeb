@@ -214,35 +214,6 @@ function updateUncheckedList(i){
     drawLayers(currentSnpList, 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value);
 }
 
-function getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, data, heatmapCfg, tooltipText) {
-    if (!uncheckedSnpsList.includes(i)) {
-        heatmapCfg["gradient"] = getGradient(i);
-        let newLayer = new HeatmapOverlay(heatmapCfg);
-        if (mode === Modes.DISPERSION_MODE) {
-            let newData = [];
-            data.forEach(element => {
-                newData.push({
-                    "count": 1,
-                    "lat": element["lat"],
-                    "lng": element["lng"],
-                    "snpsList": element["snpsList"]
-                });
-            });
-            data = newData;
-        }
-        newLayer.setData({
-            max: threshold,
-            data: data,
-        });
-        newMap.addLayer(newLayer);
-
-        document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
-        document.getElementById(`checkBox${i}`).checked = true;
-        document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${tooltipText}</span>`;
-    }
-    return newMap;
-}
-
 function clearAll(isClearButtonPressed) {
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
@@ -254,14 +225,10 @@ function clearAll(isClearButtonPressed) {
     }
     uncheckedSnpsList = [];
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
-    clearMap();
+    map = getCleanMap();
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
-}
-
-function clearMap() {
-    map = getCleanMap();
 }
 
 function getCleanMap() {
@@ -340,7 +307,10 @@ async function drawLayers(snpList, threshold) {
                     if (snpCombinationsList.length <= colorBoxesNumber) {
                         let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
                         for (let j = 0; j < snpCombinationsList.length; j++) {
-                            newMap = getMapWithNewLayerAndUpdateCheckbox(j, newMap, threshold, pointGroupsList[j], heatmapCfg, snpCombinationsList[j].join(","));
+                            if (!uncheckedSnpsList.includes(i)) {
+                                newMap = getMapWithNewLayer(heatmapCfg, j, pointGroupsList[j], threshold, newMap);                    
+                                updateCheckbox(j, snpCombinationsList[j].join(","));
+                            }
                         }
                     } else {
                         let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
@@ -348,13 +318,45 @@ async function drawLayers(snpList, threshold) {
                         throw tooMuchDispersionGroupsErrorText;
                     }
                 } else if (mode === Modes.LEVELS_MODE) {
-                    newMap = getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, dataList[i], heatmapCfg, snpList[i]);
+                    if (!uncheckedSnpsList.includes(i)) {
+                        newMap = getMapWithNewLayer(heatmapCfg, i, dataList[i], threshold, newMap);                    
+                        updateCheckbox(i, snpList[i]);
+                    }
                 }
             }
         }
         map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
     }
+}
+
+function getMapWithNewLayer(heatmapCfg, i, data, threshold, newMap) {
+    heatmapCfg["gradient"] = getGradient(i);
+    let newLayer = new HeatmapOverlay(heatmapCfg);
+    if (mode === Modes.DISPERSION_MODE) {
+        let newData = [];
+        data.forEach(element => {
+            newData.push({
+                "count": 1,
+                "lat": element["lat"],
+                "lng": element["lng"],
+                "snpsList": element["snpsList"]
+            });
+        });
+        data = newData;
+    }
+    newLayer.setData({
+        max: threshold,
+        data: data,
+    });
+    newMap.addLayer(newLayer);
+    return newMap;
+}
+
+function updateCheckbox(i, tooltipText) {
+    document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
+    document.getElementById(`checkBox${i}`).checked = true;
+    document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${tooltipText}</span>`;
 }
 
 function getGradient(i) {
