@@ -216,35 +216,30 @@ function updateUncheckedList(i){
 
 function getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, data, heatmapCfg, tooltipText) {
     if (!uncheckedSnpsList.includes(i)) {
-        let gradient = getGradient(i);
-        newMap = getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap);
+        heatmapCfg["gradient"] = getGradient(i);
+        let newLayer = new HeatmapOverlay(heatmapCfg);
+        if (mode === Modes.DISPERSION_MODE) {
+            let newData = [];
+            data.forEach(element => {
+                newData.push({
+                    "count": 1,
+                    "lat": element["lat"],
+                    "lng": element["lng"],
+                    "snpsList": element["snpsList"]
+                });
+            });
+            data = newData;
+        }
+        newLayer.setData({
+            max: threshold,
+            data: data,
+        });
+        newMap.addLayer(newLayer);
+
         document.getElementById(`checkBoxLabel${i}`).style = `background-color:${gradientValues[i][6]}`;
         document.getElementById(`checkBox${i}`).checked = true;
         document.getElementById(`checkBoxLabel${i}`).innerHTML = `<span class="tooltiptext" id="tooltipText${i}">${tooltipText}</span>`;
     }
-    return newMap;
-}
-
-function getMapWithNewLayer(gradient, threshold, data, heatmapCfg, newMap) {
-    heatmapCfg["gradient"] = gradient;
-    let newLayer = new HeatmapOverlay(heatmapCfg);
-    if (mode === Modes.DISPERSION_MODE) {
-        let newData = [];
-        data.forEach(element => {
-            newData.push({
-                "count": 1,
-                "lat": element["lat"],
-                "lng": element["lng"],
-                "snpsList": element["snpsList"]
-            });
-        });
-        data = newData;
-    }
-    newLayer.setData({
-        max: threshold,
-        data: data,
-    });
-    newMap.addLayer(newLayer);
     return newMap;
 }
 
@@ -321,72 +316,45 @@ async function drawLayers(snpList, threshold) {
         useLocalExtrema: false,
         latField: "lat",
         lngField: "lng",
-        valueField: "count"
+        valueField: "count",
+        radius: 2,
+        maxOpacity: 0.5
     };
 
     if (snpList !== undefined) {
-        if (mode === Modes.DISPERSION_MODE) {
-            await drawDispersionLayers(heatmapCfg, snpList, threshold);
-        } else if (mode === Modes.LEVELS_MODE) {
-            await drawLevelsLayers(heatmapCfg, snpList, threshold);
-        }
-    }
-}
-
-async function drawLevelsLayers(heatmapCfg, snpList, threshold) {
-    heatmapCfg["radius"] = 3;
-    heatmapCfg["maxOpacity"] = 0.9;
-    let errorSnpList = [];
-    let dataList = [];
-    for (let i = 0; i < snpList.length; i++) {
-        try {
-            let data = await getDocFromDb(snpList[i]);
-            dataList.push(data);
-        } catch (e) {
-            errorSnpList.push(snpList[i]);
-        }
-    }
-    let newMap = getCleanMap();
-    for (let i = 0; i < snpList.length; i++) {
-        if (dataList[i] !== undefined) {
-            newMap = getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, dataList[i], heatmapCfg, snpList[i]);
-        }
-    }
-    map = newMap;
-    printSnpReceivingState(errorSnpList, snpList);
-}
-
-async function drawDispersionLayers(heatmapCfg, snpList, threshold) {
-    heatmapCfg["radius"] = 2;
-    heatmapCfg["maxOpacity"] = 0.5;
-    let errorSnpList = [];
-    let dataList = [];
-    for (let i = 0; i < snpList.length; i++) {
-        try {
-            let data = await getDocFromDb(snpList[i]);
-            dataList.push(data);
-        } catch (e) {
-            errorSnpList.push(snpList[i]);
-        }
-    }
-    let newMap = getCleanMap();
-    for (let i = 0; i < snpList.length; i++) {
-        if (dataList[i] !== undefined) {
-            let snpCombinationsList = getSnpCombinationsList(dataList[i]);
-            if (snpCombinationsList.length <= colorBoxesNumber) {
-                let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
-                for (let j = 0; j < snpCombinationsList.length; j++) {
-                    newMap = getMapWithNewLayerAndUpdateCheckbox(j, newMap, threshold, pointGroupsList[j], heatmapCfg, snpCombinationsList[j].join(","));
-                }
-            } else {
-                let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
-                document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
-                throw tooMuchDispersionGroupsErrorText;
+        let errorSnpList = [];
+        let dataList = [];
+        for (let i = 0; i < snpList.length; i++) {
+            try {
+                let data = await getDocFromDb(snpList[i]);
+                dataList.push(data);
+            } catch (e) {
+                errorSnpList.push(snpList[i]);
             }
         }
+        let newMap = getCleanMap();
+        for (let i = 0; i < snpList.length; i++) {
+            if (dataList[i] !== undefined) {
+                if (mode === Modes.DISPERSION_MODE) {
+                    let snpCombinationsList = getSnpCombinationsList(dataList[i]);
+                    if (snpCombinationsList.length <= colorBoxesNumber) {
+                        let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
+                        for (let j = 0; j < snpCombinationsList.length; j++) {
+                            newMap = getMapWithNewLayerAndUpdateCheckbox(j, newMap, threshold, pointGroupsList[j], heatmapCfg, snpCombinationsList[j].join(","));
+                        }
+                    } else {
+                        let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
+                        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
+                        throw tooMuchDispersionGroupsErrorText;
+                    }
+                } else if (mode === Modes.LEVELS_MODE) {
+                    newMap = getMapWithNewLayerAndUpdateCheckbox(i, newMap, threshold, dataList[i], heatmapCfg, snpList[i]);
+                }
+            }
+        }
+        map = newMap;
+        printSnpReceivingState(errorSnpList, snpList);
     }
-    map = newMap;
-    printSnpReceivingState(errorSnpList, snpList);
 }
 
 function getGradient(i) {
