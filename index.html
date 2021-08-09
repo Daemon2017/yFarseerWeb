@@ -11,6 +11,19 @@
     <link rel="stylesheet" type="text/css" href="css/leaflet.css" />
     <link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
 
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="js/heatmap.js"></script>
+    <script src="js/leaflet-heatmap.js"></script>
+    <script src="js/jstat.min.js"></script>
+    <script src="js/jquery-1.12.4.js"></script>
+    <script src="js/jquery-ui.js"></script>
+    <script src="js/jquery.tablesort.js"></script>
+    <script src="js/rainbowvis.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-firestore.js"></script>
+
     <script>
         var firebaseConfig = {
             apiKey: "AIzaSyAM4kHpzADIdI9c_Sejm8E7kfGbpVBoNN0",
@@ -27,18 +40,6 @@
         firebase.firestore().enablePersistence();
     </script>
     <script src="main.js"></script>
-    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
-    <script src="js/heatmap.js"></script>
-    <script src="js/leaflet-heatmap.js"></script>
-    <script src="js/jstat.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-analytics.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-firestore.js"></script>
-    <script src="js/jquery-1.12.4.js"></script>
-    <script src="js/jquery-ui.js"></script>
-    <script src="js/jquery.tablesort.js"></script>
-    <script src="js/rainbowvis.js"></script>
 </head>
 
 <body onload="main()">
