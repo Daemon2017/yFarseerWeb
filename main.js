@@ -22,6 +22,7 @@ const colorBoxesNumber = 20;
 
 let map;
 let baseLayer;
+let backgroundLayerList = [];
 let dbSnpsList = [];
 let mode;
 let gradientValues = [];
@@ -75,6 +76,26 @@ async function main() {
         layers: [baseLayer],
     });
     map.addEventListener("move", getLatLng());
+
+    L.Control.FileLayerLoad.LABEL = '<img class="icon" src="./img/folder.svg" alt="file icon"/>';
+    let lflControl = L.Control.fileLayerLoad({
+        fitBounds: true,
+        layer: L.geoJson,
+        layerOptions: {
+            style: {
+                color: 'red',
+                fillOpacity: 0.1
+            }
+        },
+    });
+    lflControl.addTo(map);
+    lflControl.loader.on('data:loaded', function (e) {
+        backgroundLayerList.push(e.layer);
+        e.layer.eachLayer(function (layer) {
+            backgroundLayerList.push(layer);
+            backgroundLayerList.push(layer._renderer);
+        });
+    });
 
     dbSnpsList = await getDocFromDb("list");
 
@@ -217,6 +238,7 @@ function updateUncheckedList(i){
 function clearAll(isClearButtonPressed) {
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+        backgroundLayerList = [];
     }
     for (let i = 0; i < colorBoxesNumber; i++) {
         document.getElementById(`checkBoxLabel${i}`).style = "background-color: transparent";
@@ -234,7 +256,7 @@ function clearAll(isClearButtonPressed) {
 function getCleanMap() {
     let newMap = map;
     newMap.eachLayer(function (layer) {
-        if (layer !== baseLayer) {
+        if (layer !== baseLayer && !backgroundLayerList.includes(layer)) {
             newMap.removeLayer(layer);
         }
     });

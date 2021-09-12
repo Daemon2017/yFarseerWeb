@@ -11,7 +11,7 @@
     <link rel="stylesheet" type="text/css" href="css/leaflet.css" />
     <link rel="stylesheet" type="text/css" href="css/jquery-ui.css">
 
-    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="js/leaflet.js"></script>
     <script src="js/heatmap.js"></script>
     <script src="js/leaflet-heatmap.js"></script>
     <script src="js/jstat.min.js"></script>
@@ -19,6 +19,8 @@
     <script src="js/jquery-ui.js"></script>
     <script src="js/jquery.tablesort.js"></script>
     <script src="js/rainbowvis.js"></script>
+    <script src="js/togeojson.js"></script>
+    <script src="js/leaflet.filelayer.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-analytics.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-auth.js"></script>
@@ -63,6 +65,9 @@
         <br />
         <label for="searchForm" id="searchLabel">
             SNPs:
+            <button type="submit" id="levelUpButton">
+                ↰
+            </button>
             <input type="search" id="searchForm" placeholder="R-CTS1211, R-Z92" />
         </label>
         <label for="extendedCheckbox" id="checkboxLabel">

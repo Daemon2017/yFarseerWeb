@@ -26,7 +26,8 @@ body * {
 #extendedCheckbox,
 #toggle-button,
 #getLinkButton,
-#dispersionButton {
+#dispersionButton,
+#levelUpButton {
     pointer-events: auto;
 }
 
@@ -158,3 +159,9 @@ body * {
     border: 2px solid black;   
     opacity: 100%; 
 }
+
+.icon {
+    max-width: 70%;
+    max-height: 70%;
+    margin: 4px;
+  }
