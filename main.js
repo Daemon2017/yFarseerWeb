@@ -691,3 +691,9 @@ function getCorrelationClass(correlationValue) {
         return "veryHighPos";
     }
 }
+
+function getParent() {
+    var json = {};
+    fetch('./json/R.json').then(response => json = response.json());
+    var i = 0;
+}
