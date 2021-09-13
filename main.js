@@ -693,7 +693,15 @@ function getCorrelationClass(correlationValue) {
 }
 
 function getParent() {
-    var json = {};
-    fetch('./json/R.json').then(response => json = response.json());
-    var i = 0;
+    let snp = "R-Z92";
+    var json_rows = {};
+    fetch('./json/R.json')
+        .then(response => json_rows = response.json());
+    let parent = "";
+    for (const haplogroup_id of Object.keys(json_rows['allNodes'])) {
+        if (snp === json_rows['allNodes'][haplogroup_id]['name']) {
+            parent = json_rows['allNodes'][haplogroup_id]['name'];
+            break;
+        }
+    }
 }
