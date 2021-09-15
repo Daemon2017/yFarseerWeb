@@ -173,7 +173,7 @@ function attachDropDownPrompt() {
                 return false;
             },
             select: function (_event, ui) {
-                var terms = split(this.value);
+                let terms = split(this.value);
                 terms.pop();
                 terms.push(ui.item.value);
                 terms.push("");
@@ -630,7 +630,7 @@ function isArraysEquals(a, b) {
     if (a.length !== b.length) {
         return false;
     }
-    for (var i = 0; i < a.length; ++i) {
+    for (let i = 0; i < a.length; ++i) {
         if (a[i] !== b[i]) {
             return false;
         }
@@ -692,16 +692,19 @@ function getCorrelationClass(correlationValue) {
     }
 }
 
-function getParent() {
-    let snp = "R-Z92";
-    var json_rows = {};
-    fetch('./json/R.json')
-        .then(response => json_rows = response.json());
-    let parent = "";
-    for (const haplogroup_id of Object.keys(json_rows['allNodes'])) {
-        if (snp === json_rows['allNodes'][haplogroup_id]['name']) {
-            parent = json_rows['allNodes'][haplogroup_id]['name'];
-            break;
+async function getParent() {
+    let newSnpList = [];
+    for (let snp of currentSnpList){
+        let haplogroup = snp.charAt(0);
+        let json_rows = await getDocFromDb("haplotrees", haplogroup);
+        for (const haplogroup_id of Object.keys(json_rows['allNodes'])) {
+            if (snp === json_rows['allNodes'][haplogroup_id]['name']) {
+                let parentId = json_rows['allNodes'][haplogroup_id]['parentId'];
+                let parentName = json_rows['allNodes'][parentId]['name'];
+                newSnpList.push(parentName);
+                break;
+            }
         }
     }
+    selectAction(newSnpList.join(","));
 }
