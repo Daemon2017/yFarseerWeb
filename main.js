@@ -97,7 +97,7 @@ async function main() {
         });
     });
 
-    dbSnpsList = await getDocFromDb("list");
+    dbSnpsList = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", "list");
 
     attachDropDownPrompt();
 
@@ -217,7 +217,7 @@ async function showMap(isDispersion, snpString) {
 
 async function updateExtendedState() {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
-    dbSnpsList = await getDocFromDb("list");
+    dbSnpsList = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", "list");
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
 }
 
@@ -315,7 +315,7 @@ async function drawLayers(snpList, threshold) {
         let dataList = [];
         for (const snp of snpList) {
             try {
-                let data = await getDocFromDb(snp);
+                let data = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", snp);
                 dataList.push(data);
             } catch (e) {
                 errorSnpList.push(snp);
@@ -437,9 +437,9 @@ function getSnpCombinationsList(data) {
     return snpCombinationsList;
 }
 
-async function getDocFromDb(snp) {
+async function getDocFromDb(collection, snp) {
     let db = firebase.firestore();
-    let docRef = document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? db.collection("new_snps_extended").doc(snp) : db.collection("new_snps").doc(snp);
+    let docRef = db.collection(collection).doc(snp);
     let doc = await docRef.get();
     return JSON.parse(doc.data().data);
 }
@@ -521,7 +521,7 @@ async function showCorrelation(isAll, snpString) {
         let errorSnpList = [];
         for (const snp of snpList) {
             try {
-                let data = await getDocFromDb(snp);
+                let data = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", snp);
                 allSnpPointsList.push(data);
             } catch (e) {
                 errorSnpList.push(snp);
