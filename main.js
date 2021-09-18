@@ -25,8 +25,6 @@ const DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT = "Error: Data of all SNPs wasn
 const colorBoxesNumber = 20;
 
 let map;
-let baseLayer;
-let backgroundLayerList = [];
 let dbSnpsList = [];
 let mode;
 let gradientValues = [];
@@ -67,7 +65,7 @@ async function main() {
     let snpString = urlParams.get(SNPS_URL_PARAM);
     mode = urlParams.get(MODE_URL_PARAM);
 
-    baseLayer = L.tileLayer(
+    let baseLayer = L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: 'Map data &copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://cloudmade.com">CloudMade</a>',
             maxZoom: 10,
@@ -93,13 +91,6 @@ async function main() {
         },
     });
     lflControl.addTo(map);
-    lflControl.loader.on('data:loaded', function (e) {
-        backgroundLayerList.push(e.layer);
-        e.layer.eachLayer(function (layer) {
-            backgroundLayerList.push(layer);
-            backgroundLayerList.push(layer._renderer);
-        });
-    });
 
     dbSnpsList = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", "list");
 
@@ -239,7 +230,7 @@ function updateUncheckedList(i) {
 function clearAll(isClearButtonPressed) {
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
-        backgroundLayerList = [];
+        map = getMapWithoutUpperLayers();
     }
     for (let i = 0; i < colorBoxesNumber; i++) {
         document.getElementById(`checkBoxLabel${i}`).style = "background-color: transparent";
@@ -248,16 +239,26 @@ function clearAll(isClearButtonPressed) {
     }
     uncheckedSnpsList = [];
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
-    map = getCleanMap();
+    map = getMapWithoutHeatmapLayers();
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
 }
 
-function getCleanMap() {
+function getMapWithoutUpperLayers() {
     let newMap = map;
     newMap.eachLayer(function (layer) {
-        if (layer !== baseLayer && !backgroundLayerList.includes(layer)) {
+        if (layer._url === undefined) {
+            newMap.removeLayer(layer);
+        }
+    });
+    return newMap;
+}
+
+function getMapWithoutHeatmapLayers() {
+    let newMap = map;
+    newMap.eachLayer(function (layer) {
+        if (layer._heatmap !== undefined) {
             newMap.removeLayer(layer);
         }
     });
@@ -331,7 +332,7 @@ async function drawLayers(snpList, threshold) {
         let finalSnpList = snpList.filter(function (item) {
             return errorSnpList.indexOf(item) < 0;
         });
-        let newMap = getCleanMap();
+        let newMap = getMapWithoutHeatmapLayers();
         for (let i = 0; i < finalSnpList.length; i++) {
             if (dataList[i] !== undefined) {
                 if (mode === Mode.DISPERSION) {
