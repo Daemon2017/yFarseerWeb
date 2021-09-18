@@ -206,11 +206,8 @@ async function showMap(isDispersion, snpString) {
     }
 
     clearAll(false);
-    if (snpString === null | snpString === undefined) {
-        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
-    }
-
     currentSnpList = getSnpList(snpString);
+
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(currentSnpList, threshold);
 }
@@ -264,6 +261,10 @@ function getCleanMap() {
 }
 
 function getSnpList(snpString) {
+    if (snpString === null | snpString === undefined) {
+        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
+    }
+
     if (snpString !== null) {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
@@ -511,15 +512,12 @@ async function showCorrelation(isAll, snpString) {
     }
 
     clearAll(false);
-    if (snpString === null | snpString === undefined) {
-        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
-    }
-    let snpList = getSnpList(snpString);
+    currentSnpList = getSnpList(snpString);
 
     let allSnpPointsList = [];
-    if (snpList !== undefined) {
+    if (currentSnpList !== undefined) {
         let errorSnpList = [];
-        for (const snp of snpList) {
+        for (const snp of currentSnpList) {
             try {
                 let data = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", snp);
                 allSnpPointsList.push(data);
@@ -530,7 +528,7 @@ async function showCorrelation(isAll, snpString) {
 
         let correlationMatrix = getCorrelationMatrix(allSnpPointsList);
 
-        let successSnpList = snpList.filter(function (snp) {
+        let successSnpList = currentSnpList.filter(function (snp) {
             return !errorSnpList.includes(snp);
         });
         if (successSnpList.length > 0) {
@@ -541,7 +539,7 @@ async function showCorrelation(isAll, snpString) {
             });
         }
 
-        printSnpReceivingState(errorSnpList, snpList);
+        printSnpReceivingState(errorSnpList, currentSnpList);
     }
 }
 
@@ -694,7 +692,7 @@ function getCorrelationClass(correlationValue) {
 
 async function getParent() {
     let newSnpList = [];
-    for (let snp of currentSnpList){
+    for (let snp of currentSnpList) {
         let haplogroup = snp.charAt(0);
         let json_rows = await getDocFromDb("haplotrees", haplogroup);
         for (const haplogroup_id of Object.keys(json_rows['allNodes'])) {
