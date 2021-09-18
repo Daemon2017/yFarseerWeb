@@ -706,5 +706,5 @@ async function getParent() {
             }
         }
     }
-    selectAction(newSnpList.join(","));
+    showMap(false, Array.from(new Set(newSnpList)).join(","));
 }
