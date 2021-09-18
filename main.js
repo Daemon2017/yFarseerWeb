@@ -41,10 +41,10 @@ async function main() {
 
     gradientValues = createGradientList();
 
-    let colorBoxesInnerHtml =  ``;
+    let colorBoxesInnerHtml = ``;
     for (let i = 0; i < colorBoxesNumber; i++) {
-        colorBoxesInnerHtml += 
-        `<span class="colorBox tooltip" id="colorBox${i}">
+        colorBoxesInnerHtml +=
+            `<span class="colorBox tooltip" id="colorBox${i}">
             <input type="checkbox" class="checkBox" id="checkBox${i}" onclick="updateUncheckedList(${i})"/>
             <label class="checkBoxLabel" id="checkBoxLabel${i}" for="checkBox${i}"></label>
         </span>`;
@@ -108,25 +108,25 @@ async function main() {
 
 function createGradientList() {
     let lastColorList = [
-        "#e6194B", 
-        "#3cb44b", 
-        "#ffe119", 
-        "#4363d8", 
-        "#f58231", 
-        "#911eb4", 
-        "#42d4f4", 
-        "#f032e6", 
-        "#bfef45", 
-        "#fabed4", 
-        "#469990", 
-        "#dcbeff", 
-        "#9A6324", 
-        "#fffac8", 
-        "#800000", 
-        "#aaffc3", 
-        "#808000", 
-        "#ffd8b1", 
-        "#000075", 
+        "#e6194B",
+        "#3cb44b",
+        "#ffe119",
+        "#4363d8",
+        "#f58231",
+        "#911eb4",
+        "#42d4f4",
+        "#f032e6",
+        "#bfef45",
+        "#fabed4",
+        "#469990",
+        "#dcbeff",
+        "#9A6324",
+        "#fffac8",
+        "#800000",
+        "#aaffc3",
+        "#808000",
+        "#ffd8b1",
+        "#000075",
         "#a9a9a9"
     ];
     let gradientList = [];
@@ -223,7 +223,7 @@ function updateIntensity(intensity) {
     drawLayers(currentSnpList, threshold);
 }
 
-function updateUncheckedList(i){
+function updateUncheckedList(i) {
     if (document.getElementById(`checkBox${i}`).checked === true) {
         uncheckedSnpsList = uncheckedSnpsList.filter(item => item !== i);
     } else {
@@ -261,16 +261,16 @@ function getCleanMap() {
 }
 
 function getSnpList(snpString) {
-    if (snpString === null | snpString === undefined) {
+    if (snpString === null || snpString === undefined) {
         snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
     }
 
-    if (snpString !== null) {
+    if (snpString !== null && snpString !== undefined && snpString !== "") {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
-            let noSnpErrorText = "Error: No SNP was specified!";
-            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpErrorText;
-            throw noSnpErrorText;
+            let noSnpWasSpecifiedErrorText = "Error: No SNP was specified!";
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpWasSpecifiedErrorText;
+            throw noSnpWasSpecifiedErrorText;
         }
 
         let snpList = snpString.split(",");
@@ -286,15 +286,19 @@ function getSnpList(snpString) {
             maxLength = colorBoxesNumber;
         } else if (mode === Modes.CORRELATION_ALL_MODE || mode === Modes.CORRELATION_INTERSECT_MODE) {
             maxLength = 50;
-        } 
+        }
 
         if (!(snpList.length > 0 && snpList.length <= maxLength)) {
-            let wrongSnpLengthErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
-            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = wrongSnpLengthErrorText;
-            throw wrongSnpLengthErrorText;
+            let wrongSnpNumberErrorText = `Error: The number of SNPs should be in the range [1;${maxLength}]!`;
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = wrongSnpNumberErrorText;
+            throw wrongSnpNumberErrorText;
         }
 
         return snpList;
+    } else {
+        let noSnpWasSpecifiedErrorText = "Error: No SNP was specified!";
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpWasSpecifiedErrorText;
+        throw noSnpWasSpecifiedErrorText;
     }
 }
 
@@ -488,11 +492,14 @@ function printSnpReceivingState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } else if (snpList.length - errorSnpList.length === 0) {
+        let allSnpsWasntReceivedErrorText = `Error: Data of all SNPs wasn't received!`;
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
-            `Error: Data of all SNPs wasn't received!`;
+            allSnpsWasntReceivedErrorText;
+        throw allSnpsWasntReceivedErrorText;
     } else {
+        let snpWasntReceivedErrorText = `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
-            `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
+            snpWasntReceivedErrorText;
     }
 }
 
@@ -577,9 +584,12 @@ function getCorrelationAllRow(correlationRow, diversityLevelList) {
 }
 
 function getCorrelationIntersectedRow(diversityLevelList, correlationRow) {
-    let newDiversityLevelList = [[], []];
+    let newDiversityLevelList = [
+        [],
+        []
+    ];
     for (let i = 0; i < diversityLevelList[0].length; i++) {
-        if (diversityLevelList[0][i] !== 0 & diversityLevelList[1][i] !== 0) {
+        if (diversityLevelList[0][i] !== 0 && diversityLevelList[1][i] !== 0) {
             newDiversityLevelList[0].push(diversityLevelList[0][i]);
             newDiversityLevelList[1].push(diversityLevelList[1][i]);
         }
@@ -692,6 +702,8 @@ function getCorrelationClass(correlationValue) {
 
 async function getParent() {
     let newSnpList = [];
+    mode = Modes.LEVELS_MODE;
+    currentSnpList = getSnpList(null);
     for (let snp of currentSnpList) {
         let haplogroup = snp.charAt(0);
         let json_rows = await getDocFromDb("haplotrees", haplogroup);
@@ -704,5 +716,5 @@ async function getParent() {
             }
         }
     }
-    showMap(false, Array.from(new Set(newSnpList)).join(","));
+    document.getElementById(SEARCH_FORM_ELEMENT_ID).value = Array.from(new Set(newSnpList)).join(",");
 }
