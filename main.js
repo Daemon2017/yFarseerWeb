@@ -18,6 +18,10 @@ const BOXES_ELEMENT_ID = "boxes";
 const BUSY_STATE_TEXT = "Busy...";
 const OK_STATE_TEXT = "OK.";
 
+const NO_SNP_WAS_SPECIFIED_ERROR_TEXT = "Error: No SNP was specified!";
+const BOTH_LAT_AND_LNG_MUST_BE_A_NUMBER_ERROR_TEXT = "Error: Both Lat and Lng must be a number!";
+const DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT = "Error: Data of all SNPs wasn't received!";
+
 const colorBoxesNumber = 20;
 
 let map;
@@ -268,9 +272,8 @@ function getSnpList(snpString) {
     if (snpString !== null && snpString !== undefined && snpString !== "") {
         snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
         if (snpString === "") {
-            let noSnpWasSpecifiedErrorText = "Error: No SNP was specified!";
-            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpWasSpecifiedErrorText;
-            throw noSnpWasSpecifiedErrorText;
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+            throw NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
         }
 
         let snpList = snpString.split(",");
@@ -296,9 +299,8 @@ function getSnpList(snpString) {
 
         return snpList;
     } else {
-        let noSnpWasSpecifiedErrorText = "Error: No SNP was specified!";
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = noSnpWasSpecifiedErrorText;
-        throw noSnpWasSpecifiedErrorText;
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+        throw NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
     }
 }
 
@@ -467,9 +469,8 @@ function setLatLng() {
         map.panTo(new L.LatLng(lat, lng));
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } catch (e) {
-        let latAndLngMustBeANumberErrorText = "Error: Both Lat and Lng must be a number!";
-        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = latAndLngMustBeANumberErrorText;
-        throw latAndLngMustBeANumberErrorText;
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BOTH_LAT_AND_LNG_MUST_BE_A_NUMBER_ERROR_TEXT;
+        throw BOTH_LAT_AND_LNG_MUST_BE_A_NUMBER_ERROR_TEXT;
     }
 }
 
@@ -492,14 +493,14 @@ function printSnpReceivingState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     } else if (snpList.length - errorSnpList.length === 0) {
-        let allSnpsWasntReceivedErrorText = `Error: Data of all SNPs wasn't received!`;
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
-            allSnpsWasntReceivedErrorText;
-        throw allSnpsWasntReceivedErrorText;
+            DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT;
+        throw DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT;
     } else {
         let snpWasntReceivedErrorText = `Error: Data of SNPs ${errorSnpList.join(",")} wasn't received!`;
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             snpWasntReceivedErrorText;
+        throw snpWasntReceivedErrorText;
     }
 }
 
