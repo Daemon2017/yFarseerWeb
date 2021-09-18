@@ -33,11 +33,11 @@ let gradientValues = [];
 let uncheckedSnpsList = [];
 let currentSnpList = [];
 
-const Modes = Object.freeze({
-    LEVELS_MODE: String("levels"),
-    DISPERSION_MODE: String("dispersion"),
-    CORRELATION_ALL_MODE: String("correlationAll"),
-    CORRELATION_INTERSECT_MODE: String("correlationIntersect")
+const Mode = Object.freeze({
+    LEVEL: String("levels"),
+    DISPERSION: String("dispersion"),
+    CORRELATION_ALL: String("correlationAll"),
+    CORRELATION_INTERSECT: String("correlationIntersect")
 });
 
 async function main() {
@@ -189,13 +189,13 @@ function attachDropDownPrompt() {
 }
 
 function selectAction(snpString) {
-    if (mode === Modes.LEVELS_MODE) {
+    if (mode === Mode.LEVEL) {
         showMap(false, snpString);
-    } else if (mode === Modes.DISPERSION_MODE) {
+    } else if (mode === Mode.DISPERSION) {
         showMap(true, snpString);
-    } else if (mode === Modes.CORRELATION_INTERSECT_MODE) {
+    } else if (mode === Mode.CORRELATION_INTERSECT) {
         showCorrelation(false, snpString);
-    } else if (mode === Modes.CORRELATION_ALL_MODE) {
+    } else if (mode === Mode.CORRELATION_ALL) {
         showCorrelation(true, snpString);
     }
 }
@@ -204,9 +204,9 @@ async function showMap(isDispersion, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isDispersion === true) {
-        mode = Modes.DISPERSION_MODE;
+        mode = Mode.DISPERSION;
     } else {
-        mode = Modes.LEVELS_MODE;
+        mode = Mode.LEVEL;
     }
 
     clearAll(false);
@@ -283,11 +283,11 @@ function getSnpList(snpString) {
         document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
 
         let maxLength;
-        if (mode === Modes.DISPERSION_MODE) {
+        if (mode === Mode.DISPERSION) {
             maxLength = 1;
-        } else if (mode === Modes.LEVELS_MODE) {
+        } else if (mode === Mode.LEVEL) {
             maxLength = colorBoxesNumber;
-        } else if (mode === Modes.CORRELATION_ALL_MODE || mode === Modes.CORRELATION_INTERSECT_MODE) {
+        } else if (mode === Mode.CORRELATION_ALL || mode === Mode.CORRELATION_INTERSECT) {
             maxLength = 50;
         }
 
@@ -334,9 +334,9 @@ async function drawLayers(snpList, threshold) {
         let newMap = getCleanMap();
         for (let i = 0; i < finalSnpList.length; i++) {
             if (dataList[i] !== undefined) {
-                if (mode === Modes.DISPERSION_MODE) {
+                if (mode === Mode.DISPERSION) {
                     newMap = drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold);
-                } else if (mode === Modes.LEVELS_MODE) {
+                } else if (mode === Mode.LEVEL) {
                     newMap = drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, finalSnpList);
                 }
             }
@@ -375,7 +375,7 @@ function drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, snpList) {
 function getMapWithNewLayer(heatmapCfg, i, data, threshold, newMap) {
     heatmapCfg["gradient"] = getGradient(i);
     let newLayer = new HeatmapOverlay(heatmapCfg);
-    if (mode === Modes.DISPERSION_MODE) {
+    if (mode === Mode.DISPERSION) {
         let newData = [];
         data.forEach(element => {
             newData.push({
@@ -514,9 +514,9 @@ async function showCorrelation(isAll, snpString) {
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
 
     if (isAll) {
-        mode = Modes.CORRELATION_ALL_MODE;
+        mode = Mode.CORRELATION_ALL;
     } else {
-        mode = Modes.CORRELATION_INTERSECT_MODE;
+        mode = Mode.CORRELATION_INTERSECT;
     }
 
     clearAll(false);
@@ -568,9 +568,9 @@ function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict
         let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
         let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
         let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
-        if (mode === Modes.CORRELATION_ALL_MODE) {
+        if (mode === Mode.CORRELATION_ALL) {
             getCorrelationAllRow(correlationRow, diversityLevelList);
-        } else if (mode === Modes.CORRELATION_INTERSECT_MODE) {
+        } else if (mode === Mode.CORRELATION_INTERSECT) {
             getCorrelationIntersectedRow(diversityLevelList, correlationRow);
         }
     });
@@ -703,7 +703,7 @@ function getCorrelationClass(correlationValue) {
 
 async function getParent() {
     let newSnpList = [];
-    mode = Modes.LEVELS_MODE;
+    mode = Mode.LEVEL;
     currentSnpList = getSnpList(null);
     for (let snp of currentSnpList) {
         let haplogroup = snp.charAt(0);
