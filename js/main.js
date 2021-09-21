@@ -111,7 +111,7 @@ async function showMap(isDispersion, snpString) {
     }
 
     clearAll(false);
-    currentSnpList = getSnpList(snpString);
+    currentSnpList = getSnpListWithChecks(snpString);
 
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(currentSnpList, threshold);
@@ -184,7 +184,7 @@ async function showCorrelation(isAll, snpString) {
     }
 
     clearAll(false);
-    currentSnpList = getSnpList(snpString);
+    currentSnpList = getSnpListWithChecks(snpString);
 
     let allSnpPointsList = [];
     if (currentSnpList !== undefined) {
@@ -217,7 +217,6 @@ async function showCorrelation(isAll, snpString) {
 
 async function getParent() {
     let newSnpList = [];
-    mode = Mode.LEVEL;
     currentSnpList = getSnpList(null);
     for (let snp of currentSnpList) {
         let haplogroup = snp.charAt(0);
@@ -231,5 +230,10 @@ async function getParent() {
             }
         }
     }
-    document.getElementById(SEARCH_FORM_ELEMENT_ID).value = Array.from(new Set(newSnpList)).join(",");
+    let newSnpString = Array.from(new Set(newSnpList)).join(",");
+    if (mode === null) {
+        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = newSnpString;
+    } else {
+        selectAction(newSnpString);
+    }
 }

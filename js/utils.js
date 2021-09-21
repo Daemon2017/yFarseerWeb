@@ -117,24 +117,10 @@ function getMapWithoutHeatmapLayers() {
     return newMap;
 }
 
-function getSnpList(snpString) {
-    if (snpString === null || snpString === undefined) {
-        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
-    }
+function getSnpListWithChecks(snpString) {
+    let snpList = getSnpList(snpString);
 
-    if (snpString !== null && snpString !== undefined && snpString !== "") {
-        snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
-        if (snpString === "") {
-            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
-            throw NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
-        }
-
-        let snpList = snpString.split(",");
-        snpList = snpList.filter(function (snp) {
-            return snp !== "";
-        });
-        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
-
+    if (snpList !== null && snpList !== undefined && snpList.length > 0) {
         let maxLength;
         if (mode === Mode.DISPERSION) {
             maxLength = 1;
@@ -149,6 +135,33 @@ function getSnpList(snpString) {
             document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = wrongSnpNumberErrorText;
             throw wrongSnpNumberErrorText;
         }
+
+        return snpList;
+    } else {
+        document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+        throw NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+    }
+}
+
+function getSnpList(snpString) {
+    let snpList = [];
+
+    if (snpString === null || snpString === undefined || snpString === "") {
+        snpString = document.getElementById(SEARCH_FORM_ELEMENT_ID).value;
+    }
+
+    if (snpString !== null && snpString !== undefined && snpString !== "") {
+        snpString = snpString.toUpperCase().replace(/ /g, "").replace(/\t/g, "");
+        if (snpString === "") {
+            document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+            throw NO_SNP_WAS_SPECIFIED_ERROR_TEXT;
+        }
+
+        snpList = snpString.split(",");
+        snpList = snpList.filter(function (snp) {
+            return snp !== "";
+        });
+        document.getElementById(SEARCH_FORM_ELEMENT_ID).value = snpList.join(",");
 
         return snpList;
     } else {
