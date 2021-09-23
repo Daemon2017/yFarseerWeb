@@ -30,6 +30,7 @@ let mode;
 let gradientValues = [];
 let uncheckedSnpsList = [];
 let currentSnpList = [];
+let haplotree = {};
 
 const Mode = Object.freeze({
     LEVEL: String("levels"),
@@ -218,13 +219,14 @@ async function showCorrelation(isAll, snpString) {
 async function getParent() {
     let newSnpList = [];
     currentSnpList = getSnpList(null);
+    if (Object.keys(haplotree).length === 0) {
+        haplotree = await getCollectionFromDb("haplotree");
+    }
     for (let snp of currentSnpList) {
-        let haplogroup = snp.charAt(0);
-        let json_rows = await getDocFromDb("haplotrees", haplogroup);
-        for (const haplogroup_id of Object.keys(json_rows['allNodes'])) {
-            if (snp === json_rows['allNodes'][haplogroup_id]['name']) {
-                let parentId = json_rows['allNodes'][haplogroup_id]['parentId'];
-                let parentName = json_rows['allNodes'][parentId]['name'];
+        for (const haplogroup_id of Object.keys(haplotree)) {
+            if (snp === haplotree[haplogroup_id]['name']) {
+                let parentId = haplotree[haplogroup_id]['parentId'];
+                let parentName = haplotree[parentId]['name'];
                 newSnpList.push(parentName);
                 break;
             }

@@ -317,6 +317,15 @@ async function getDocFromDb(collection, snp) {
     return JSON.parse(doc.data().data);
 }
 
+async function getCollectionFromDb(collection) {
+    let db = firebase.firestore();
+    let collRef = db.collection(collection);
+    let coll = await collRef.get();
+    let data = {};
+    coll.docs.map(doc => data = Object.assign({}, data, JSON.parse(doc.data().data)));
+    return data;
+}
+
 function getLatLng() {
     return function () {
         let center = map.getCenter();
