@@ -226,20 +226,35 @@ async function drawLayers(snpList, threshold) {
 
 async function drawTrace(snpList) {
     if (snpList !== undefined) {
-        let errorSnpList = [];
-        let i = 0;
+        let parentSnpSet = new Set();
         for (const snp of snpList) {
+            parentSnpSet.add(snp);
+            getParentSnpList(snp).forEach(item => parentSnpSet.add(item));
+        }
+        let errorSnpList = [];
+        let snpToDataDict = {};
+        for (const item of parentSnpSet) {
             try {
+                snpToDataDict[item] = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", item);
+            } catch (e) {
+                errorSnpList.push(item);
+            }
+        }
+        let newSnpList = snpList.filter(function (item) {
+            return errorSnpList.indexOf(item) < 0;
+        });
+        let newMap = getMapWithoutHeatmapLayers();
+        for (let i = 0; i < newSnpList.length; i++) {
+            if (snpToDataDict[newSnpList[i]] !== undefined) {
                 let prevoiusCenter;
                 let j = 0;
-                let parentSnpList = getParentSnpList(snp);
+                let parentSnpList = getParentSnpList(newSnpList[i]);
                 for (const parentSnp of parentSnpList) {
-                    let data = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", parentSnp);
                     if (j === 0) {
-                        updateCheckbox(i, snpList[i]);
+                        updateCheckbox(i, newSnpList[i]);
                     }
-                    let max = getArrayMax(data, "count");
-                    let newData = data.filter(function (el) {
+                    let max = getArrayMax(snpToDataDict[parentSnp], "count");
+                    let newData = snpToDataDict[parentSnp].filter(function (el) {
                         return el.count == max;
                     });
                     let pointList = [];
@@ -257,11 +272,9 @@ async function drawTrace(snpList) {
                     prevoiusCenter = center.geometry.coordinates;
                     j++;
                 }
-            } catch (e) {
-                errorSnpList.push(snp);
             }
-            i++;
         }
+        map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
     }
 }
@@ -393,7 +406,7 @@ function getLatLng() {
 function printSnpReceivingState(errorSnpList, snpList) {
     if (errorSnpList.length === 0) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
-    } else if (snpList.length - errorSnpList.length === 0) {
+    } else if (snpList.length === errorSnpList.length) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText =
             DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT;
         throw DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT;
