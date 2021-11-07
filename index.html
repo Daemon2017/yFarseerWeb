@@ -21,6 +21,7 @@
     <script src="js/rainbowvis.js"></script>
     <script src="js/togeojson.js"></script>
     <script src="js/leaflet.filelayer.js"></script>
+    <script src="js/turf.min.js" charset="utf-8"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-analytics.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.9.0/firebase-auth.js"></script>
@@ -87,6 +88,9 @@
         </button>
         <button type="submit" id="dispersionButton" onclick="showMap(true, null)">
             Dispersion
+        </button>
+        <button type="submit" id="dispersionButton" onclick="showTrace(null)">
+            Trace
         </button>
         <button type="submit" id="correlAllButton" onclick="showCorrelation(true, null)">
             CorrelationAll

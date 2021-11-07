@@ -35,6 +35,7 @@ let haplotree = {};
 const Mode = Object.freeze({
     LEVEL: String("levels"),
     DISPERSION: String("dispersion"),
+    TRACE: String("trace"),
     CORRELATION_ALL: String("correlationAll"),
     CORRELATION_INTERSECT: String("correlationIntersect")
 });
@@ -95,6 +96,8 @@ async function main() {
 
     dbSnpsList = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", "list");
 
+    haplotree = await getCollectionFromDb("haplotree");
+
     attachDropDownPrompt();
 
     document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
@@ -116,6 +119,17 @@ async function showMap(isDispersion, snpString) {
 
     let threshold = 10 - document.getElementById(INTENSITY_SLIDER_ELEMENT_ID).value;
     drawLayers(currentSnpList, threshold);
+}
+
+async function showTrace(snpString) {
+    document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = BUSY_STATE_TEXT;
+
+    mode = Mode.TRACE;
+
+    clearAll(false);
+    currentSnpList = getSnpListWithChecks(snpString);
+
+    drawTrace(currentSnpList);
 }
 
 async function updateExtendedState() {
@@ -142,6 +156,7 @@ function clearAll(isClearButtonPressed) {
     uncheckedSnpsList = [];
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
     map = getMapWithoutHeatmapLayers();
+    map = getMapWithoutPolylineLayers();
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
@@ -219,13 +234,10 @@ async function showCorrelation(isAll, snpString) {
 async function getParent() {
     let newSnpList = [];
     currentSnpList = getSnpList(null);
-    if (Object.keys(haplotree).length === 0) {
-        haplotree = await getCollectionFromDb("haplotree");
-    }
-    for (let snp of currentSnpList) {
-        for (const haplogroup_id of Object.keys(haplotree)) {
-            if (snp === haplotree[haplogroup_id]['name']) {
-                let parentId = haplotree[haplogroup_id]['parentId'];
+    for (const snp of currentSnpList) {
+        for (const haplogroupId of Object.keys(haplotree)) {
+            if (snp === haplotree[haplogroupId]['name']) {
+                let parentId = haplotree[haplogroupId]['parentId'];
                 let parentName = haplotree[parentId]['name'];
                 newSnpList.push(parentName);
                 break;

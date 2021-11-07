@@ -85,6 +85,8 @@ function selectAction(snpString) {
         showCorrelation(false, snpString);
     } else if (mode === Mode.CORRELATION_ALL) {
         showCorrelation(true, snpString);
+    } else if (mode === Mode.TRACE) {
+        showTrace(snpString);
     }
 }
 
@@ -117,6 +119,16 @@ function getMapWithoutHeatmapLayers() {
     return newMap;
 }
 
+function getMapWithoutPolylineLayers() {
+    let newMap = map;
+    newMap.eachLayer(function (layer) {
+        if (layer._parts !== undefined && layer._parts.length !== 0) {
+            newMap.removeLayer(layer);
+        }
+    });
+    return newMap;
+}
+
 function getSnpListWithChecks(snpString) {
     let snpList = getSnpList(snpString);
 
@@ -124,7 +136,7 @@ function getSnpListWithChecks(snpString) {
         let maxLength;
         if (mode === Mode.DISPERSION) {
             maxLength = 1;
-        } else if (mode === Mode.LEVEL) {
+        } else if (mode === Mode.LEVEL || mode === Mode.TRACE) {
             maxLength = colorBoxesNumber;
         } else if (mode === Mode.CORRELATION_ALL || mode === Mode.CORRELATION_INTERSECT) {
             maxLength = 50;
@@ -208,6 +220,48 @@ async function drawLayers(snpList, threshold) {
             }
         }
         map = newMap;
+        printSnpReceivingState(errorSnpList, snpList);
+    }
+}
+
+async function drawTrace(snpList) {
+    if (snpList !== undefined) {
+        let errorSnpList = [];
+        let i = 0;
+        for (const snp of snpList) {
+            try {
+                let prevoiusCenter;
+                let j = 0;
+                let parentSnpList = getParentSnpList(snp);
+                for (const parentSnp of parentSnpList) {
+                    let data = await getDocFromDb(document.getElementById(EXTENDED_CHECKBOX_ELEMENT_ID).checked ? "new_snps_extended" : "new_snps", parentSnp);
+                    if (j === 0) {
+                        updateCheckbox(i, snpList[i]);
+                    }
+                    let max = getArrayMax(data, "count");
+                    let newData = data.filter(function (el) {
+                        return el.count == max;
+                    });
+                    let pointList = [];
+                    for (const record of newData) {
+                        let point = turf.point([record.lat, record.lng]);
+                        pointList.push(point);
+                    }
+                    let pointCollection = turf.featureCollection(pointList);
+                    let center = turf.centerOfMass(pointCollection);
+                    if (j > 0) {
+                        L.polyline([prevoiusCenter, center.geometry.coordinates], {
+                            color: gradientValues[i][6]
+                        }).addTo(map);
+                    }
+                    prevoiusCenter = center.geometry.coordinates;
+                    j++;
+                }
+            } catch (e) {
+                errorSnpList.push(snp);
+            }
+            i++;
+        }
         printSnpReceivingState(errorSnpList, snpList);
     }
 }
@@ -351,12 +405,11 @@ function printSnpReceivingState(errorSnpList, snpList) {
     }
 }
 
-function getArrayMax(myArray, n, property) {
-    return Math.max.apply(Math, myArray[n].map(function (o) {
+function getArrayMax(myArray, property) {
+    return Math.max.apply(Math, myArray.map(function (o) {
         return o[property];
     }));
 }
-
 
 function getCorrelationMatrix(allSnpPointsList) {
     let correlationMatrix = [];
@@ -422,7 +475,7 @@ function getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPoi
 
 function getPointToDiversityPercentDict(allSnpPointsList, index, currentSnpPointsList) {
     let dict = {};
-    let max = getArrayMax(allSnpPointsList, index, "count");
+    let max = getArrayMax(allSnpPointsList[index], "count");
     currentSnpPointsList.forEach(function (point) {
         dict[`${point["lat"]};${point["lng"]}`] = point["count"] / max;
     });
@@ -506,4 +559,22 @@ function getCorrelationClass(correlationValue) {
     } else if (correlationValue > 0.90) {
         return "veryHighPos";
     }
+}
+
+function getParentSnpList(snp) {
+    let parentList = [];
+    for (let haplogroupId of Object.keys(haplotree)) {
+        if (snp === haplotree[haplogroupId]['name']) {
+            while (true) {
+                parentList.push(haplotree[haplogroupId]['name']);
+                if (haplotree[haplogroupId].hasOwnProperty('parentId')) {
+                    haplogroupId = haplotree[haplogroupId]['parentId'];
+                } else {
+                    break;
+                }
+            }
+            break;
+        }
+    }
+    return parentList;
 }
