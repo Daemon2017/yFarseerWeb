@@ -129,6 +129,16 @@ function getMapWithoutPolylineLayers() {
     return newMap;
 }
 
+function getMapWithoutCircleLayers() {
+    let newMap = map;
+    newMap.eachLayer(function (layer) {
+        if (layer._radius !== undefined) {
+            newMap.removeLayer(layer);
+        }
+    });
+    return newMap;
+}
+
 function getSnpListWithChecks(snpString) {
     let snpList = getSnpList(snpString);
 
@@ -250,27 +260,40 @@ async function drawTrace(snpList) {
                 let j = 0;
                 let parentSnpList = getParentSnpList(newSnpList[i]);
                 for (const parentSnp of parentSnpList) {
-                    if (j === 0) {
-                        updateCheckbox(i, newSnpList[i]);
+                    if (j < 5) {
+                        if (j === 0) {
+                            updateCheckbox(i, newSnpList[i]);
+                        }
+                        let max = getArrayMax(snpToDataDict[parentSnp], "count");
+                        let newData = snpToDataDict[parentSnp].filter(function (el) {
+                            return el.count == max;
+                        });
+                        let pointList = [];
+                        for (const record of newData) {
+                            let point = turf.point([record.lat, record.lng]);
+                            pointList.push(point);
+                        }
+                        let pointCollection = turf.featureCollection(pointList);
+                        let center = turf.centroid(pointCollection);
+                        if (j == 0) {
+                            L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                                color: gradientValues[i][9],
+                                radius: 25000,
+                                fillOpacity: 1.0
+                            }).addTo(map).bindPopup(parentSnp);
+                        } else {
+                            L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                                color: gradientValues[i][5],
+                                radius: 25000,
+                                fillOpacity: 0.5
+                            }).addTo(map).bindPopup(parentSnp);
+                            L.polyline([prevoiusCenter, center.geometry.coordinates], {
+                                color: gradientValues[i][6]
+                            }).addTo(map);
+                        }
+                        prevoiusCenter = center.geometry.coordinates;
+                        j++;
                     }
-                    let max = getArrayMax(snpToDataDict[parentSnp], "count");
-                    let newData = snpToDataDict[parentSnp].filter(function (el) {
-                        return el.count == max;
-                    });
-                    let pointList = [];
-                    for (const record of newData) {
-                        let point = turf.point([record.lat, record.lng]);
-                        pointList.push(point);
-                    }
-                    let pointCollection = turf.featureCollection(pointList);
-                    let center = turf.centerOfMass(pointCollection);
-                    if (j > 0) {
-                        L.polyline([prevoiusCenter, center.geometry.coordinates], {
-                            color: gradientValues[i][6]
-                        }).addTo(map);
-                    }
-                    prevoiusCenter = center.geometry.coordinates;
-                    j++;
                 }
             }
         }

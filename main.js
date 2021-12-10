@@ -157,6 +157,7 @@ function clearAll(isClearButtonPressed) {
     document.getElementById(CORRELATION_MATRIX_ELEMENT_ID).innerHTML = null;
     map = getMapWithoutHeatmapLayers();
     map = getMapWithoutPolylineLayers();
+    map = getMapWithoutCircleLayers();
     if (isClearButtonPressed) {
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = OK_STATE_TEXT;
     }
