@@ -220,7 +220,8 @@ async function drawLayers(snpList, threshold) {
             return errorSnpList.indexOf(item) < 0;
         });
         let newMap = getMapWithoutHeatmapLayers();
-        for (let i = 0; i < finalSnpList.length; i++) {
+        let i = 0;
+        for (const finalSnp of finalSnpList) {
             if (dataList[i] !== undefined) {
                 if (mode === Mode.DISPERSION) {
                     newMap = drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold);
@@ -228,6 +229,7 @@ async function drawLayers(snpList, threshold) {
                     newMap = drawLevelsLayers(i, newMap, heatmapCfg, dataList, threshold, finalSnpList);
                 }
             }
+            i++;
         }
         map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
@@ -254,48 +256,48 @@ async function drawTrace(snpList) {
             return errorSnpList.indexOf(item) < 0;
         });
         let newMap = getMapWithoutHeatmapLayers();
-        for (let i = 0; i < newSnpList.length; i++) {
-            if (snpToDataDict[newSnpList[i]] !== undefined) {
+        let i = 0;
+        for (const newSnp of newSnpList) {
+            if (snpToDataDict[newSnp] !== undefined) {
                 let prevoiusCenter;
                 let j = 0;
-                let parentSnpList = getParentSnpList(newSnpList[i]);
+                let parentSnpList = getParentSnpList(newSnp);
                 for (const parentSnp of parentSnpList) {
-                    if (j < 5) {
-                        if (j === 0) {
-                            updateCheckbox(i, newSnpList[i]);
-                        }
-                        let max = getArrayMax(snpToDataDict[parentSnp], "count");
-                        let newData = snpToDataDict[parentSnp].filter(function (el) {
-                            return el.count == max;
-                        });
-                        let pointList = [];
-                        for (const record of newData) {
-                            let point = turf.point([record.lat, record.lng]);
-                            pointList.push(point);
-                        }
-                        let pointCollection = turf.featureCollection(pointList);
-                        let center = turf.centroid(pointCollection);
-                        if (j == 0) {
-                            L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
-                                color: gradientValues[i][9],
-                                radius: 25000,
-                                fillOpacity: 1.0
-                            }).addTo(map).bindPopup(parentSnp);
-                        } else {
-                            L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
-                                color: gradientValues[i][5],
-                                radius: 25000,
-                                fillOpacity: 0.5
-                            }).addTo(map).bindPopup(parentSnp);
-                            L.polyline([prevoiusCenter, center.geometry.coordinates], {
-                                color: gradientValues[i][6]
-                            }).addTo(map);
-                        }
-                        prevoiusCenter = center.geometry.coordinates;
-                        j++;
+                    if (j === 0) {
+                        updateCheckbox(i, newSnp);
                     }
+                    let max = getArrayMax(snpToDataDict[parentSnp], "count");
+                    let newData = snpToDataDict[parentSnp].filter(function (el) {
+                        return el.count == max;
+                    });
+                    let pointList = [];
+                    for (const record of newData) {
+                        let point = turf.point([record.lat, record.lng]);
+                        pointList.push(point);
+                    }
+                    let pointCollection = turf.featureCollection(pointList);
+                    let center = turf.centroid(pointCollection);
+                    if (j == 0) {
+                        L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                            color: gradientValues[i][9],
+                            radius: 25000,
+                            fillOpacity: 1.0
+                        }).addTo(map).bindPopup(parentSnp);
+                    } else {
+                        L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                            color: gradientValues[i][5],
+                            radius: 25000,
+                            fillOpacity: 0.5
+                        }).addTo(map).bindPopup(parentSnp);
+                        L.polyline([prevoiusCenter, center.geometry.coordinates], {
+                            color: gradientValues[i][6]
+                        }).addTo(map);
+                    }
+                    prevoiusCenter = center.geometry.coordinates;
+                    j++;
                 }
             }
+            i++;
         }
         map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
@@ -303,14 +305,16 @@ async function drawTrace(snpList) {
 }
 
 function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
-    let snpCombinationsList = getSnpCombinationsList(dataList[i]);
-    if (snpCombinationsList.length <= colorBoxesNumber) {
-        let pointGroupsList = getPointGroupsList(snpCombinationsList, dataList[i]);
-        for (let j = 0; j < snpCombinationsList.length; j++) {
+    let snpCombinationList = getSnpCombinationsList(dataList[i]);
+    if (snpCombinationList.length <= colorBoxesNumber) {
+        let pointGroupsList = getPointGroupsList(snpCombinationList, dataList[i]);
+        let j = 0;
+        for (const snpCombination of snpCombinationList) {
             if (!uncheckedSnpsList.includes(j)) {
                 newMap = getMapWithNewLayer(heatmapCfg, j, pointGroupsList[j], threshold, newMap);
-                updateCheckbox(j, snpCombinationsList[j].join(","));
+                updateCheckbox(j, snpCombination.join(","));
             }
+            j++;
         }
     } else {
         let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
