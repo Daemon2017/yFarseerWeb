@@ -241,7 +241,7 @@ async function drawTrace(snpList) {
         let parentSnpSet = new Set();
         for (const snp of snpList) {
             parentSnpSet.add(snp);
-            getParentSnpList(snp).forEach(item => parentSnpSet.add(item));
+            getAncestorSnpList(snp).forEach(item => parentSnpSet.add(item));
         }
         let errorSnpList = [];
         let snpToDataDict = {};
@@ -261,40 +261,63 @@ async function drawTrace(snpList) {
             if (snpToDataDict[newSnp] !== undefined) {
                 let prevoiusCenter;
                 let j = 0;
-                let parentSnpList = getParentSnpList(newSnp);
-                for (const parentSnp of parentSnpList) {
+                let ancestorSnpList = getAncestorSnpList(newSnp);
+                let previousAncestorSnp = newSnp;
+                for (const ancestorSnp of ancestorSnpList) {
                     if (j === 0) {
                         updateCheckbox(i, newSnp);
                     }
-                    let max = getArrayMax(snpToDataDict[parentSnp], "count");
-                    let newData = snpToDataDict[parentSnp].filter(function (el) {
-                        return el.count == max;
+                    let newData = snpToDataDict[ancestorSnp].filter(function (el) {
+                        return el.count == getArrayMax(snpToDataDict[ancestorSnp], "count");
                     });
-                    let pointList = [];
-                    for (const record of newData) {
-                        let point = turf.point([record.lat, record.lng]);
-                        pointList.push(point);
-                    }
-                    let pointCollection = turf.featureCollection(pointList);
-                    let center = turf.centroid(pointCollection);
+                    let bigCenter = getCenter(newData);
                     if (j == 0) {
-                        L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                        L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
                             color: gradientValues[i][9],
                             radius: 25000,
                             fillOpacity: 1.0
-                        }).addTo(map).bindPopup(parentSnp);
+                        }).addTo(newMap).bindPopup(ancestorSnp);
                     } else {
-                        L.circle([center.geometry.coordinates[0], center.geometry.coordinates[1]], {
+                        let snpCombinationList = getSnpCombinationsList(snpToDataDict[ancestorSnp]);
+                        let pointGroupsList = getPointGroupsList(snpCombinationList, snpToDataDict[ancestorSnp]);
+                        let max = getChildSnpList(ancestorSnp).length;
+                        for (let d = 2; d < max; d++) {
+                            let currentDiversityPointList = [];
+                            let currentSnpCombinationList = [];
+                            let k = 0;
+                            for (const snpCombination of snpCombinationList) {
+                                if (snpCombination.includes(previousAncestorSnp) && snpCombination.length === d) {
+                                    currentDiversityPointList = currentDiversityPointList.concat(pointGroupsList[k]);
+                                    currentSnpCombinationList = currentSnpCombinationList.concat(snpCombination);
+                                }
+                                k++;
+                            }
+                            if (currentDiversityPointList.length > 0) {
+                                let smallCenter = getCenter(currentDiversityPointList);
+                                let groupName = d + 'L: ' + currentSnpCombinationList.length + 'C: ' + Array.from(new Set(currentSnpCombinationList)).join(',');
+                                L.circle([smallCenter.geometry.coordinates[0], smallCenter.geometry.coordinates[1]], {
+                                    color: gradientValues[i][5],
+                                    radius: 12500,
+                                    fillOpacity: 0.33
+                                }).addTo(newMap).bindPopup(groupName);
+                                L.polyline([prevoiusCenter, smallCenter.geometry.coordinates], {
+                                    color: gradientValues[i][6]
+                                }).addTo(newMap);
+                                prevoiusCenter = smallCenter.geometry.coordinates;
+                            }
+                        }
+                        L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
                             color: gradientValues[i][5],
                             radius: 25000,
-                            fillOpacity: 0.5
-                        }).addTo(map).bindPopup(parentSnp);
-                        L.polyline([prevoiusCenter, center.geometry.coordinates], {
+                            fillOpacity: 0.66
+                        }).addTo(newMap).bindPopup(ancestorSnp);
+                        L.polyline([prevoiusCenter, bigCenter.geometry.coordinates], {
                             color: gradientValues[i][6]
-                        }).addTo(map);
+                        }).addTo(newMap);
                     }
-                    prevoiusCenter = center.geometry.coordinates;
+                    prevoiusCenter = bigCenter.geometry.coordinates;
                     j++;
+                    previousAncestorSnp = ancestorSnp;
                 }
             }
             i++;
@@ -302,6 +325,17 @@ async function drawTrace(snpList) {
         map = newMap;
         printSnpReceivingState(errorSnpList, snpList);
     }
+}
+
+function getCenter(data){
+    let pointList = [];
+    for (const record of data) {
+        let point = turf.point([record.lat, record.lng]);
+        pointList.push(point);
+    }
+    let pointCollection = turf.featureCollection(pointList);
+    let center = turf.centroid(pointCollection);
+    return center;
 }
 
 function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
@@ -404,6 +438,14 @@ function getSnpCombinationsList(data) {
     return snpCombinationsList;
 }
 
+function getDiversityLevelList(snpCombinationList) {
+    let diversityLevelList = [];
+    for (const snpCombination of snpCombinationList) {
+        diversityLevelList.push(snpCombination.length);
+    }
+    return diversityLevelList;
+}
+
 async function getDocFromDb(collection, snp) {
     let db = firebase.firestore();
     let docRef = db.collection(collection).doc(snp);
@@ -446,9 +488,14 @@ function printSnpReceivingState(errorSnpList, snpList) {
 }
 
 function getArrayMax(myArray, property) {
-    return Math.max.apply(Math, myArray.map(function (o) {
-        return o[property];
-    }));
+    if (property !== null) {
+        return Math.max.apply(Math, myArray.map(function (o) {
+            return o[property];
+        }));
+    }
+    else {
+        return Math.max.apply(null, myArray);
+    }
 }
 
 function getCorrelationMatrix(allSnpPointsList) {
@@ -467,50 +514,50 @@ function getCorrelationRow(allSnpPointsList, firstSnpPointToDiversityPercentDict
     allSnpPointsList.forEach(function (secondSnpPointsList, secondSnpIndex) {
         let secondSnpPointToDiversityPercentDict = getPointToDiversityPercentDict(allSnpPointsList, secondSnpIndex, secondSnpPointsList);
         let allPossiblePointsList = getAllPossiblePoints(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict);
-        let diversityLevelList = getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
+        let diversityPercentList = getDiversityPercentList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList);
         if (mode === Mode.CORRELATION_ALL) {
-            getCorrelationAllRow(correlationRow, diversityLevelList);
+            getCorrelationAllRow(correlationRow, diversityPercentList);
         } else if (mode === Mode.CORRELATION_INTERSECT) {
-            getCorrelationIntersectedRow(diversityLevelList, correlationRow);
+            getCorrelationIntersectedRow(diversityPercentList, correlationRow);
         }
     });
     return correlationRow;
 }
 
-function getCorrelationAllRow(correlationRow, diversityLevelList) {
+function getCorrelationAllRow(correlationRow, diversityPercentList) {
     correlationRow.push(jStat
-        .corrcoeff(diversityLevelList[0], diversityLevelList[1])
+        .corrcoeff(diversityPercentList[0], diversityPercentList[1])
         .toFixed(2)
     );
 }
 
-function getCorrelationIntersectedRow(diversityLevelList, correlationRow) {
-    let newDiversityLevelList = [
+function getCorrelationIntersectedRow(diversityPercentList, correlationRow) {
+    let newDiversityPercentList = [
         [],
         []
     ];
-    for (let i = 0; i < diversityLevelList[0].length; i++) {
-        if (diversityLevelList[0][i] !== 0 && diversityLevelList[1][i] !== 0) {
-            newDiversityLevelList[0].push(diversityLevelList[0][i]);
-            newDiversityLevelList[1].push(diversityLevelList[1][i]);
+    for (let i = 0; i < diversityPercentList[0].length; i++) {
+        if (diversityPercentList[0][i] !== 0 && diversityPercentList[1][i] !== 0) {
+            newDiversityPercentList[0].push(diversityPercentList[0][i]);
+            newDiversityPercentList[1].push(diversityPercentList[1][i]);
         }
     }
     correlationRow.push(jStat
-        .corrcoeff(newDiversityLevelList[0], newDiversityLevelList[1])
+        .corrcoeff(newDiversityPercentList[0], newDiversityPercentList[1])
         .toFixed(2)
     );
 }
 
-function getDiversityLevelList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList) {
-    let diversityLevelList = [];
+function getDiversityPercentList(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict, allPossiblePointsList) {
+    let diversityPercentList = [];
     new Array(firstSnpPointToDiversityPercentDict, secondSnpPointToDiversityPercentDict).forEach(function (dict) {
         let countList = new Array(allPossiblePointsList.length).fill(0);
         allPossiblePointsList.forEach(function (key, index) {
             countList[index] = dict[key] == undefined ? 0 : dict[key];
         });
-        diversityLevelList.push(countList);
+        diversityPercentList.push(countList);
     });
-    return diversityLevelList;
+    return diversityPercentList;
 }
 
 function getPointToDiversityPercentDict(allSnpPointsList, index, currentSnpPointsList) {
@@ -601,12 +648,12 @@ function getCorrelationClass(correlationValue) {
     }
 }
 
-function getParentSnpList(snp) {
-    let parentList = [];
+function getAncestorSnpList(snp) {
+    let ancestorSnpList = [];
     for (let haplogroupId of Object.keys(haplotree)) {
         if (snp === haplotree[haplogroupId]['name']) {
             while (true) {
-                parentList.push(haplotree[haplogroupId]['name']);
+                ancestorSnpList.push(haplotree[haplogroupId]['name']);
                 if (haplotree[haplogroupId].hasOwnProperty('parentId')) {
                     haplogroupId = haplotree[haplogroupId]['parentId'];
                 } else {
@@ -616,5 +663,18 @@ function getParentSnpList(snp) {
             break;
         }
     }
-    return parentList;
+    return ancestorSnpList;
+}
+
+function getChildSnpList(snp) {
+    let childSnpList = [];
+    for (const haplogroupId of Object.keys(haplotree)) {
+        if (snp === haplotree[haplogroupId]['name']) {
+            for (const childSnpId of haplotree[haplogroupId]['children']) {
+                childSnpList.push(haplotree[childSnpId]['name']);
+            }
+            break;
+        }
+    }
+    return childSnpList;
 }
