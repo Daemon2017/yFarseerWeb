@@ -336,8 +336,7 @@ function getCenter(data){
         pointList.push(point);
     }
     let pointCollection = turf.featureCollection(pointList);
-    let center = turf.centroid(pointCollection);
-    return center;
+    return turf.centroid(pointCollection);
 }
 
 function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
