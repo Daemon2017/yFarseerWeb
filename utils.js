@@ -264,60 +264,62 @@ async function drawTrace(snpList) {
                 let ancestorSnpList = getAncestorSnpList(newSnp);
                 let previousAncestorSnp = newSnp;
                 for (const ancestorSnp of ancestorSnpList) {
-                    if (j === 0) {
-                        updateCheckbox(i, newSnp);
-                    }
-                    let newData = snpToDataDict[ancestorSnp].filter(function (el) {
-                        return el.count == getArrayMax(snpToDataDict[ancestorSnp], "count");
-                    });
-                    let bigCenter = getCenter(newData);
-                    if (j == 0) {
-                        L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
-                            color: gradientValues[i][9],
-                            radius: 25000,
-                            fillOpacity: 1.0
-                        }).addTo(newMap).bindPopup(ancestorSnp);
-                    } else {
-                        let snpCombinationList = getSnpCombinationsList(snpToDataDict[ancestorSnp]);
-                        let pointGroupsList = getPointGroupsList(snpCombinationList, snpToDataDict[ancestorSnp]);
-                        let max = getChildSnpList(ancestorSnp).length;
-                        for (let d = 2; d < max; d++) {
-                            let currentDiversityPointList = [];
-                            let currentSnpCombinationList = [];
-                            let k = 0;
-                            for (const snpCombination of snpCombinationList) {
-                                if (snpCombination.includes(previousAncestorSnp) && snpCombination.length === d) {
-                                    currentDiversityPointList = currentDiversityPointList.concat(pointGroupsList[k]);
-                                    currentSnpCombinationList = currentSnpCombinationList.concat(snpCombination);
-                                }
-                                k++;
-                            }
-                            if (currentDiversityPointList.length > 0) {
-                                let smallCenter = getCenter(currentDiversityPointList);
-                                let groupName = d + 'L: ' + currentSnpCombinationList.length + 'C: ' + Array.from(new Set(currentSnpCombinationList)).join(',');
-                                L.circle([smallCenter.geometry.coordinates[0], smallCenter.geometry.coordinates[1]], {
-                                    color: gradientValues[i][5],
-                                    radius: 12500,
-                                    fillOpacity: 0.33
-                                }).addTo(newMap).bindPopup(groupName);
-                                L.polyline([prevoiusCenter, smallCenter.geometry.coordinates], {
-                                    color: gradientValues[i][6]
-                                }).addTo(newMap);
-                                prevoiusCenter = smallCenter.geometry.coordinates;
-                            }
+                    if (j < 5) {
+                        if (j === 0) {
+                            updateCheckbox(i, newSnp);
                         }
-                        L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
-                            color: gradientValues[i][5],
-                            radius: 25000,
-                            fillOpacity: 0.66
-                        }).addTo(newMap).bindPopup(ancestorSnp);
-                        L.polyline([prevoiusCenter, bigCenter.geometry.coordinates], {
-                            color: gradientValues[i][6]
-                        }).addTo(newMap);
+                        let newData = snpToDataDict[ancestorSnp].filter(function (el) {
+                            return el.count == getArrayMax(snpToDataDict[ancestorSnp], "count");
+                        });
+                        let bigCenter = getCenter(newData);
+                        if (j == 0) {
+                            L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
+                                color: gradientValues[i][9],
+                                radius: 25000,
+                                fillOpacity: 1.0
+                            }).addTo(newMap).bindPopup(ancestorSnp);
+                        } else {
+                            let snpCombinationList = getSnpCombinationsList(snpToDataDict[ancestorSnp]);
+                            let pointGroupsList = getPointGroupsList(snpCombinationList, snpToDataDict[ancestorSnp]);
+                            let max = getChildSnpList(ancestorSnp).length;
+                            for (let d = 2; d < max; d++) {
+                                let currentDiversityPointList = [];
+                                let currentSnpCombinationList = [];
+                                let k = 0;
+                                for (const snpCombination of snpCombinationList) {
+                                    if (snpCombination.includes(previousAncestorSnp) && snpCombination.length === d) {
+                                        currentDiversityPointList = currentDiversityPointList.concat(pointGroupsList[k]);
+                                        currentSnpCombinationList = currentSnpCombinationList.concat(snpCombination);
+                                    }
+                                    k++;
+                                }
+                                if (currentDiversityPointList.length > 0) {
+                                    let smallCenter = getCenter(currentDiversityPointList);
+                                    let groupName = d + 'L: ' + currentSnpCombinationList.length + 'C: ' + Array.from(new Set(currentSnpCombinationList)).join(',');
+                                    L.circle([smallCenter.geometry.coordinates[0], smallCenter.geometry.coordinates[1]], {
+                                        color: gradientValues[i][5],
+                                        radius: 12500,
+                                        fillOpacity: 0.33
+                                    }).addTo(newMap).bindPopup(groupName);
+                                    L.polyline([prevoiusCenter, smallCenter.geometry.coordinates], {
+                                        color: gradientValues[i][6]
+                                    }).addTo(newMap);
+                                    prevoiusCenter = smallCenter.geometry.coordinates;
+                                }
+                            }
+                            L.circle([bigCenter.geometry.coordinates[0], bigCenter.geometry.coordinates[1]], {
+                                color: gradientValues[i][5],
+                                radius: 25000,
+                                fillOpacity: 0.66
+                            }).addTo(newMap).bindPopup(ancestorSnp);
+                            L.polyline([prevoiusCenter, bigCenter.geometry.coordinates], {
+                                color: gradientValues[i][6]
+                            }).addTo(newMap);
+                        }
+                        prevoiusCenter = bigCenter.geometry.coordinates;
+                        j++;
+                        previousAncestorSnp = ancestorSnp;
                     }
-                    prevoiusCenter = bigCenter.geometry.coordinates;
-                    j++;
-                    previousAncestorSnp = ancestorSnp;
                 }
             }
             i++;
