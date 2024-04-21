@@ -43,7 +43,7 @@
         options: {
             layer: L.geoJson,
             layerOptions: {},
-            fileSizeLimit: 1024
+            fileSizeLimit: 4096
         },
 
         initialize: function (map, options) {
@@ -231,7 +231,7 @@
             fitBounds: true,
             layerOptions: {},
             addToMap: true,
-            fileSizeLimit: 1024
+            fileSizeLimit: 4096
         },
 
         initialize: function (options) {
