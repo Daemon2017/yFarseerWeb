@@ -329,7 +329,7 @@ async function drawTrace(snpList) {
     }
 }
 
-function getCenter(data){
+function getCenter(data) {
     let pointList = [];
     for (const record of data) {
         let point = turf.point([record.lat, record.lng]);
