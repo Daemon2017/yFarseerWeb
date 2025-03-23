@@ -352,7 +352,7 @@ function drawDispersionLayers(dataList, i, newMap, heatmapCfg, threshold) {
             j++;
         }
     } else {
-        let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
+        let tooMuchDispersionGroupsErrorText = `Error: Selected SNP has (${snpCombinationList.length}) more than the maximum allowed (${colorBoxesNumber}) number of dispersion groups :(`;
         document.getElementById(STATE_LABEL_ELEMENT_ID).innerText = tooMuchDispersionGroupsErrorText;
         throw tooMuchDispersionGroupsErrorText;
     }
