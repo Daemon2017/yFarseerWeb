@@ -22,7 +22,7 @@ const NO_SNP_WAS_SPECIFIED_ERROR_TEXT = "Error: No SNP was specified!";
 const BOTH_LAT_AND_LNG_MUST_BE_A_NUMBER_ERROR_TEXT = "Error: Both Lat and Lng must be a number!";
 const DATA_OF_ALL_SNPS_WASNT_RECEIVED_ERROR_TEXT = "Error: Data of all SNPs wasn't received!";
 
-const colorBoxesNumber = 20;
+const colorBoxesNumber = 30;
 
 let map;
 let dbSnpsList = [];

@@ -27,6 +27,7 @@ body * {
 #toggle-button,
 #getLinkButton,
 #dispersionButton,
+#traceButton,
 #levelUpButton {
     pointer-events: auto;
 }
